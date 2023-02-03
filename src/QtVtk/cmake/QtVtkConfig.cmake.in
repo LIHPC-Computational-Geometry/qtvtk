@@ -1,0 +1,13 @@
+include(CMakeFindDependencyMacro)
+find_dependency (VtkContrib)
+find_dependency (QtUtil)
+
+@PACKAGE_INIT@
+
+set (QtVtk_VERSION @QT_VTK_VERSION@)
+set_and_check (QtVtk_INCLUDE_DIR   "@PACKAGE_INCLUDE_INSTALL_DIR@")
+set_and_check (QtVtk_LIB_DIR   "@PACKAGE_LIB_INSTALL_DIR@")
+check_required_components (QtVtk)
+
+# Fournir l'accès aux services des cibles (fichier non inclus automatiquement) :
+include(${CMAKE_CURRENT_LIST_DIR}/QtVtkTargets.cmake)

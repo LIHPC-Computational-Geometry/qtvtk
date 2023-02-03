@@ -1,0 +1,1167 @@
+A FAIRE : tester le vtkIntersectionPolyDataFilter de VTK 7, voir si de base il propose les services attendus (Inner, ...).
+
+Version 7.14.8 : 25/11/22
+================
+
+Un peu de nettoyage (hors sources).
+
+
+Version 7.14.7 : 05/04/22
+================
+
+QtVTKPrintHelper::printToFile version dpi : tente de détecter si la machine courrante peut faire l'impression
+par un moyen hardware, ou si l'impression doit être software dans une vtkRenderWindow offscreen (cas d'une machine virtuelle).
+
+
+Version 7.14.6 : 15/02/22
+================
+
+Retouche gestion des dépendances.
+
+
+Version 7.14.5 : 09/02/22
+================
+
+CMakeLists.txt : remplacement de NO_DEFAULT_PATH par NO_CMAKE_SYSTEM_PATH pour Qt.
+
+
+Version 7.14.4 : 02/12/21
+===============
+
+Retouches cmake (dépendances à VTK).
+
+
+Version 7.14.3 : 04/11/21
+===============
+
+Retouches cmake, portage VTK 9.1.0 RC 2
+
+
+Version 7.14.2 : 10/09/21
+===============
+
+Suppression de mini gros-mots et de balises EXPURGE. Suppression des commentaires "Chambre d'expérience" de ce fichier.
+
+
+Version 7.14.1 : 24/08/21
+================
+
+Suppression des noms de services et laboratoires.
+
+
+Version 7.14.0 : 31/03/21 Révisions svn 994/995
+================
+
+Sission du projet, ne subsiste que la partie Qt/VTK sans chambre d'expérience/conteneur experimental qui devient
+le projet ExperimentalRoom.
+
+
+Version 7.13.1 : 25/03/21 Révisions svn 991/992
+================
+
+QtPixmapLabel : le bouton n'est plus activé par défaut. Evite que des retours chariot
+dans des champs de saisie de texte n'activent la fonction.
+
+
+Version 7.13.0 : 25/01/21 Révisions svn 988/989
+===============
+
+Pré-portage VTK 9 
+
+
+Version 7.12.4 : 19/01/21 Révisions svn 985/986
+================
+
+Retouche src/container/CMakeLists.txt pour arrêt dépendance explicite à la version 7.1 de VTK.
+
+
+Version 7.12.3 : 22/12/20 Révisions svn 982/983
+================
+
+Retouche mineure CMakeLists.txt.
+
+
+Version 7.12.2 : 14/12/20 Révisions svn 980/981
+================
+
+Retouche mineure cmake/common.cmake : gestion de -DVTK_WIDGET selon les versions de VTK utilisées.
+
+
+Version 7.12.1 : 14/12/20 Révisions svn 978/979
+================
+
+Retouche mineure CMakeLists.txt racine
+
+
+Version 7.12.0 : 13/11/20 Révisions svn 975
+================
+
+Classe QtVtkGraphicWidget.
+
+
+Version 7.11.2 : 06/11/20 Révisions svn 972/973
+================
+
+Portage VTK 8.*
+
+
+Version 7.11.1 : 05/11/20 Révisions svn 970/971
+================
+
+Retouches mineures des CMakeLists.txt relatives à l'utilisation de Qt.
+
+
+Version 7.11.0 : 28/10/20 Révisions svn 968/969
+================
+
+
+Version 7.10.0 : 23/10/20 Révisions svn 964/965
+================
+
+QtVtk::initialize : 
+Classe vtkSimpleTriangleFilter, qui remplace ici la classe vtkTriangleFilter. L'objectif est ici d'avoir des triangles en toutes circonstances
+dans les calculs d'intersection rayon (cylindre)/surface de projection. Avec le vtkTriangleFilter de base, si le triangle obtenu est très applati,
+il n'a alors pas de normale, et VTK se met en erreur => pas d'intersection => le rayon traverse la suface de projection. Ici c'est beaucoup mieux
+même si pas encore parfait. Cette classe est utilisée par la classe vtkClippedAppShapeCylinderSource.
+
+
+Version 7.9.0 : 09/10/20 Révisions svn 960/961
+===============
+
+
+Version 7.8.1 : 06/10/20 Révisions svn 956/957
+===============
+
+Correctif post-covid : initialisation des ressources Qt pour bon affichage des icônes.
+Divers retouches mineures pour export.
+
+
+Version 7.8.0 : 09/09/20 Révisions svn 952/953
+===============
+
+
+Version 7.7.0 : 28/08/20 Révisions svn 950/951
+===============
+
+
+Version 7.6.5 : 24/08/20 Révisions svn 946/947
+===============
+
+
+Version 7.6.4 : 28/07/20 Révisions svn 944/945
+===============
+
+v 0.8.0 de cmake/workarounds.cmake (LC_ALL=C)
+
+
+Version 7.6.3 : 15/07/20 Révisions svn 941/942
+===============
+
+- Ajout -DNDEBUG à la compilation en mode non debug.
+- Retouches fichiers cmake relatives aux droits des fichiers installés (fonction INSTALL).
+
+
+Version 7.6.2 : 10/06/20 Révisions svn 937/938
+===============
+
+Suite portage VTK 8 (partie ouverte)
+
+
+Version 7.6.1 : 08/06/20 Révisions svn 931/932
+===============
+
+Petits correctifs pour import/export.
+cmake/common.cmake : ajout à CMAKE_CXX_FLAGS de la variable EXTRA_CXX_FLAGS éventuellement transmise en argument
+de cmake.
+
+
+Version 7.6.0 : 04/06/20 Révisions svn 929/930
+===============
+
+Fin réintégration en environnement CEA suite confinement covid-19.
+Procédure d'exportation ouverte des sources : cible export avec script export.sh (réalisation d'un tarball filtré,
+sans gros mots, reposant sur la commande expurge réalisée à cet effet et sur la commande tar).
+cmake/workaround.cmake utilise maintenant la commande lsb_release -d à la place du tandem uname/commande locale. A
+finaliser sur calculateur.
+
+
+Version 7.5.0 : 06/04/20  NON TESTE (reintégration suite confinement covid-19).
+===============
+
+Déplacement des en-têtes dans le répertoire QtVtk
+TkUtil v 5.4.0
+QtUtil v 5.3.0
+VtkContrib v 4.2.0
+
+
+Version 7.4.0 : 29/03/20 NON TESTE (reintégration suite confinement covid-19).
+===============
+
+Impressions 4k
+Ajout si nécessaire de l'extension au nom de fichier d'impression.
+
+
+Version 7.3.0 : 19/03/20 NON TESTE (reintégration suite confinement covid-19).
+===============
+
+Passage du projet en UTF-8
+Portage g++ v 7.5.0
+
+
+Version 7.2.0 : 13/03/20. Révisions svn 917/918
+===============
+
+
+Version 7.1.0 : 18/02/20. Révisions svn 915
+===============
+
+- Retouches compatibilité (SameMinorVersion -> SameMajorVersion)
+
+
+Version 7.0.1 : version deployée le 21/01/20 Révisions svn 912
+===============
+
+Script de génération de l'archive des sources, script create_tarball.sh.
+
+
+Version 7.0.0 : version deployée le 18/12/19. Révisions svn 911
+===============
+
+Portage en environnement CMake/Spack g++ 8.3/intel 18.0.3 (arrêt GSCC).
+
+
+Version 6.4.0 : version deployée le 21/10/19. Révisions svn 904/905
+===============
+
+
+Version 6.3.0 : version deployée le 01/10/19. Révisions svn 901/902
+===============
+
+
+Version 6.2.0 : version deployée le 27/09/19. Révisions svn 897/898
+===============
+
+TK_Variants v 4.10.0 : QtUtil 4.8.0 (classe QtColorChooser).
+
+Vtkgl1_711 et Vtkmesa1_711, arret Vtkgl711 et Vtkmesa711 (correctif v 5.11.0.
+plantage lors d'impressions PS/PDF sous VTK 7).
+Correctif impressions PS/PRN avec 4 trièdres (multicouches) sous VTK 7.
+
+
+Version 6.1.0 : version deployée (pour tests) le 24/09/19. Révisions svn 883/884
+===============
+
+Correctifs, classe QtPixmapDialog (qui a pour vocation à aller dans QtUtil).
+
+
+Version 6.0.0 : version deployée (pour tests) le 18/09/19. Révisions svn 873/874
+===============
+
+- vtkClippedAppShapeCylinderSource : fermeture optionnelle du cylindre.
+
+
+Version 5.11.0 : version deployée le 26/09/19. Révisions svn 887/888
+================
+
+TK_Variants v 4.10.0	: QtUtil v 4.8.0
+						  Vtkgl1_711 et Vtkmesa1_711, arrêt Vtkgl711 et Vtkmesa711
+
+Rem : Vtkgl711 avait un exportateur PS non natif mais sans classe d'implémentation
+en VTK 7 (vtkGL2PSExporter abstrait) ce qui provoquait des plantages lors
+d'impressions (imprimante/pdf/ps). Remplacement par Vtkgl1_711 qui comporte
+la classe vtkOpenGLGL2PSExporter implémentant les services de la classe
+vtkGL2PSExporter.
+
+
+Version 5.10.0 : version deployée le 06/09/19. Révisions svn 868/869
+================
+
+TK_Variants v 4.9.0	: TkUtil v 4.6.0, QtUtil v 4.7.0
+
+
+Version 5.9.0 : version deployée le 25/07/19. Révisions svn 858/859
+===============
+
+ECM_Variants 1.23.0	: Cible Atos_7__aarch64, compilateurs armclang*,
+					  gcc 7.3, SWIG 3.0.12.
+Module QtVtk		:
+
+
+Version 5.8.2 : version deployée le 12/04/19. Révisions svn 847/848
+===============
+
+Module QtVtk :
+
+
+Version 5.8.1 : version deployée le 11/04/19. Révisions svn 845/846
+===============
+
+Module QtVtk :
+
+
+Version 5.8.0 : version deployée le 12/03/19. Révisions svn 841/842
+===============
+
+TK_Variants v 4.7.0 (Variant Vtkmesa711)
+
+Activation des tooltips aux items de menus.
+
+
+Version 5.7.1 : version deployée le 18/12/18. Révisions svn 836/838
+===============
+
+Arrêt de l'utilisation (par défaut) des boites de dialogues natives
+(QColorDialog, QFileDialog) et utilisation `la place de celles de Qt, plus 
+riches en fonctions et moins spacieuses.
+
+
+Version 5.7.0 : version deployée le 30/11/18. Révisions svn 830/833
+===============
+
+TK_variants v 4.6.0 (TkUtil v 4.5.0)
+
+Report du patch v 5.3.1/5.5.1 dans la branche principale.
+
+Module QtVtk :
+vtkPatchedDelaunay2D::CheckEdge : patch suite à un plantage sur
+CentOS 7/VTK 7.1.1  dû à un appel récursif qui n'en fini pas pour un rayon bien
+précis. Insertion de 2 méthodes de VTK 5.10.0 (vtkMath::SolveLinearSystem et
+vtkTriangle::Circumcircle) sous #define PATCH_VTK_MATH_SOLVE_LINEAR_SYSTEM pour
+contourner le code natif. Il semblerait que le problème vienne du peu de
+différence entre ces 2 versions de VTK au niveau d'un test sur une constante
+(==0.0 en VTK5, < 256*std::numeric_limits<double>::epsilon() en VTK 7).
+
+
+Version 5.6.0 : version deployée le 16/11/18. Révisions svn 799/802
+===============
+
+TkUtil v 4.4.0
+
+
+Version 5.7.0 alpha : version deployée le 27/11/18. Révisions svn 819/821
+=====================
+
+
+Version 5.5.1 : version deployée le 26/11/18. Révisions svn 811/813
+===============
+
+Idem correctif v 5.3.1.
+
+
+Version 5.5.0 : version deployée le 14/09/18. Révisions svn 792/794
+===============
+
+Révision svn 795/797 suite re-déploiement du 20/09/18.
+
+Redéployée le 20/09/18 : 
+
+TkUtil v 4.3.0.
+
+Utilisation de ConsoleOutput::cout ( )/cerr ( ) de TkUtil.
+
+
+Version 5.4.0 : version deployée le 06/09/18. Révisions svn 789/791
+===============
+
+
+Version 5.3.1 : version deployée le 23/11/18. Révisions svn r803/r805
+===============
+
+
+Version 5.3.0 : version deployée le 12/07/18. Révisions svn r781/r783
+===============
+
+Correctif de la version 5.1.2:
+
+Correctifs portage VTK 7.x (actualisation forcée de certains filtres) :
+- vtkClippedCylinderSource::RequestData
+- vtkClippedAppShapeCylinderSource::RequestData
+
+
+Version 5.2.1 : déployée le 20/06/18 révision svn r748/r750
+===============
+
+Correctifs :
+- vtkPatchedDelaunay2D :  boucle infinie hyperconsommatrice en mémoire dans
+certains cas.
+
+
+Version 5.2.0 : déployée le 08/06/18 révision svn r744/r746
+===============
+
+TK_Variants v 4.1.0 (Qt591, ECM_Variants v 1.22.0 => arret cible
+BullEL_6_AE__x86_64).
+Utilisation du scenario de deploiement QT_VTK_LIBS. Déploiement uniquement des
+versions statiques.
+
+Support Qt 5.9.1 et VTK 7.1.1 (backend Open GL 1).
+
+Rem : le backend Open GL 2 n'est pas retenu car il pose des problèmes lors des
+rebonds d'une machine à l'autre et n'apporte a priori rien de quantitatif ou
+qualitatif (cf. mes collègues de la visu).
+
+
+Version 5.1.0 : déployée le 04/06/18
+===============
+
+TK_variants v 4.0.2.
+
+Quelques retouches UTF8String (tooltips, autres messages).
+
+
+Version 5.0.1 : déployée le 18/05/18
+===============
+
+TK_variants v 4.0.1.
+
+
+Version 5.0.0 : déployée le 28/03/18
+===============
+
+TK_variants v 4.0.0 (TkUtil v 4.0.0, classe UTF8String).
+
+Utilisation des nouveaux services de TkUtil/QtUtil dans l'auto-détection du jeu
+de caractères utilisé pour encoder les fichiers sources.
+
+Utilisation de la classe UTF8String.
+
+
+Version 4.17.1 : déployée le 14/03/18
+================
+
+Révision svn 704.
+
+Module QtVtk :
+
+
+Version 4.17.0 : déployée le 17/01/18
+================
+
+Déployé le 22/01/18 : lmj_quads_2018_19.xml (correctif).
+
+Module QtVtk :
+
+
+Versio 4.16.0 : déployée le 17/11/17
+================
+
+- TK_variants v 3.0.0 (ECM_Variants v 1.21.0 : portage RH 7,
+compilateurs gcc 6.2.0, icpc 17.0.4)
+- Chaines de caracteres QLatin1String,
+- Suppression des QtCore/, QtGui/ et autres pour les includes Qt.
+- Intégration des correctifs de la version 4.14.1 :
+
+
+Version 4.15.0 : déployée le 19/10/17
+================
+
+QtUtil v 3.4.0.
+
+QtVTKPrintHelper : si le fichier d'impression existe, la question de 
+l'écraser n'est posée qu'une fois (par Qt).
+
+
+Version 4.14.0 : déployée le 21/09/17
+================
+
+
+Version 4.13.0 : déployée le 04/09/17
+================
+
+gscc_prj.xml : ajout d'une custom_cmd de déploiement avec l'attribut
+when="AfterProd" permettant d'écraser la base de données déployée en cas de
+redéploiement.
+
+
+Version 4.12.0 : déployée le 21/07/17.
+================
+
+TK_libraries v 2.15.0 (TkUtil v 3.2.0).
+
+
+Version 4.10.0 : déployée le 14/06/17.
+================
+
+TK_libraries v 2.13.0.
+
+Module QtVtk :
+- vtkPatchedDelaunay2D : non correctif fuite de mémoire.
+Fuite identifiée par valgrind au niveau de la vtkIdList tried allouée dans
+vtkPatchedDelaunay2D::FindTriangle. Si on l'instancie sous vtkSmartPointer dans
+vtkPatchedDelaunay2D::RequestData et qu'on la passe en argument à FindTriangle,
+le premier appel fonctionne mais pas les suivants (pas de spot visible).
+Pourquoi ???
+- vtkClippedAppShapeCylinderSource : correctif fuite de mémoire.
+
+
+Version 4.9.0 : déployée le 09/06/17 pour tests et validation.
+===============
+
+TK_libraries v 2.12.0.
+
+Module QtVtk :
+- Classes vtkAppShapeCylinderSource, vtkClippedAppShapeCylinderSource et 
+vtkEllipticCylinderDistance : nouvelle gestion des rayons et de leurs
+intersections supportant les différentes transformations (thêta/phi/oméga des
+rayons, thêta/phi/oméga/translation des passage du repère chambre au repère
+cible).
+
+
+Version 4.8.1 : 02/06/17 CP (branche tags/4.8.1)
+===============
+
+TK_libraries v 2.11.1.
+
+
+Version 4.8.0 : 31/03/17 CP
+===============
+
+TK_libraries v 2.10.0.
+
+Module QtVtk :
+
+
+Version 4.7.0 : 20/03/17 CP
+===============
+
+Le 27/03/17 : 
+
+TK_Variants v 2.9.0.
+
+
+Version 4.6.0 : 17/03/17 CP
+===============
+
+TK_Variants v 2.8.0.
+
+Module QtVtk :
+
+
+Version 4.5.0 : 15/03/17 CP
+===============
+
+TK_Variants v 2.7.0.
+
+- Réintégration de la branche 3.7.0 dans la branche principale.
+- Classe QtCoordinatesTextField sortie, et utilisée depuis QtUtil v 3.2.0.
+- Correctif filtres Qt pour le sélecteur de fichier sur les impressions.
+
+
+Version 4.4.0 : 14/03/17 CP
+===============
+
+TK_Variants v 2.4.1.
+
+- QtVTKPrintHelper::printToFile (vtkRenderWindow&, QWidget*) : plus naturel à
+utiliser que la boite de dialogue d'impression Qt 4.* qui est inadaptée aux
+impressions dans les fichiers.
+
+
+Version 4.3.0 : 10/03/17 CP
+===============
+
+TK_Variants v 2.4.0 (QtUtil v 3.1.0).
+
+Divers petites amméliorations.
+
+Module QtVtk :
+
+
+Version 4.2.1 : 23/02/17 CP
+===============
+
+TK_Variants v 2.3.3.
+
+
+Version 4.2.0 : 18/01/17 CP
+===============
+
+TK_Variants v 2.3.0 (QtUtil v 3.1.0).
+
+Vtk5100ecm par défaut dans le scénario de déploiement.
+
+
+Version 4.1.0 : 15/12/16 CP
+===============
+
+TK_Variants v 2.1.0
+
+
+Version 4.0.0 : 12/12/16 CP/EBL
+===============
+
+TK_Variants v 2.0.0 => Arrêt variant MT, toujours multithread
+
+
+Version 3.6.0 : 26/10/16
+===============
+
+- TK_Variants v 1.79.0 (vtkcontrib v 2.20.0, retouches axes/trièdres)
+
+
+Version 3.5.0 : 25/10/16
+===============
+
+- TK_Variants v 1.78.0 (vtkcontrib v 2.19.0)
+
+- QtVTKPointLocalizator* : ajout d'un slider pour jouer sur la taille du
+localisateur (croix).
+
+
+Version 3.4.0 : 12/10/16
+===============
+
+- TK_Variants v 1.77.0
+
+
+Version 3.3.0 : 04/10/16
+===============
+
+- TK_Variants v 1.76.0
+
+
+Version 3.2.0 : 19/09/16
+===============
+
+- TK_Variants v 1.75.0
+
+
+Version 3.1.0 : 09/09/16
+===============
+
+- TK_Variants v 1.74.0 
+
+
+Version 3.0.0 : 02/09/16
+===============
+
+- TK_Variants v 1.73.0 
+
+
+Version 2.69.0 : 02/05/16
+================
+
+
+Version 2.68.0 : 30/03/16
+================
+
+
+Version 2.67.1 : 25/03/16
+================
+
+
+Version 2.67.0 : 15/03/16
+================
+
+Module QtVtk :
+- Classes vtkEllipticCylinder et vtkEllipticCylinderSource.
+
+Module tests : création.
+
+
+Version 2.66.0 : 15/02/16
+================
+
+- TK_Variants v 1.65.0.
+
+
+Version 2.65.0 : 04/02/16
+================
+
+- TK_Variants v 1.62.0.
+
+
+Version 2.64.0 : 03/02/16
+================
+
+TK_variants v 1.60.0
+
+
+Version 2.63.0 : 05/01/16
+================
+
+- TK_variants v 1.57.0
+
+
+Version 2.62.0 : 16/11/15
+================
+
+- TK_variants v 1.56.0
+
+
+Version 2.61.1 : 13/11/15
+================
+
+- TK_variants v 1.55.1
+
+
+Version 2.61.0 : 05/11/15
+================
+
+- TK_variants v 1.55.0
+
+
+Version 2.60.0 : 13/10/15
+================
+
+- TK_variants v 1.53.0
+
+
+Version 2.59.0 : 08/07/15
+================
+
+- TK_variants v 1.52.0 (Portage Atos_7__x86_64).
+
+
+Version 2.58.1 : 22/05/15
+================
+
+tkHardwareSelector : utilisation par défaut d'une zone 2 fois plus grande.
+
+Méthodes QtVtk::getHardware*.
+
+
+Version 2.58.0 : 05/05/15
+================
+
+
+Version 2.57.0 : 16/04/15
+================
+
+Classes QtVTKPointLocalizator*.
+
+Dépend de VtkContrib.
+
+
+Version 2.56.0 : 10/03/15
+================
+
+- TK_variants v 1.49.0 (QtVtk v 2.56.0).
+
+
+Version 2.55.0 : 06/03/15
+================
+
+- TK_variants v 1.48.0 (TkUtil v 2.36.0, QtUtil v 2.47.0).
+
+- Passage sous coverity => quelques correctifs.
+
+
+Version 2.54.0 : 08/12/14
+================
+
+- TK_Variants v 1.46.0.
+
+
+Version 2.53.0 : 01/12/14
+================
+
+- TK_Variants v 1.44.0 (QtUtil v 2.46.0).
+
+
+Version 2.52.0 : 28/11/14
+================
+
+- TK_Variants v 1.43.0 (TkUtil v 2.35.0).
+
+
+Version 2.51.0 : 24/11/14
+================
+
+Classe QtVTKFontParametersPanel, issue du logiciel Lem.
+
+
+Version 2.50.0 : 21/10/14
+================
+
+Optimisation de l'affichage des spots avec l'éditeur de rayons :
+- Utilisation de vtkHardwareSelector pour éliminer les spots cachés.
+- QtVtk::initialize initialise la taille de fenêtre de rendu offscreen.
+
+ATTENTION : dans cette version l'utilisation d'une fenêtre offscreen pour
+éliminer les spots cachés est à usage unique, car en maintenir une ne
+fonctionne pas dès le second usage. (REM : non testé avec
+vtkECMXOpenGLRenderWindow).
+Par ailleurs ce mode de fonctionnement ne fonctionne pas dans 100 pc de cas.
+
+
+Version 2.49.0 : 16/10/14
+================
+
+- Nouvel algorithme pour le remplissage des spots reposant sur le caractère
+vtkImplicitFunction de la classe vtkCylinder.
+- Optimisation du cas 1 surface cible unique.
+- Optimisation : le calcul du spot n'est effectué qu'à la demande.
+
+ATTENTION : élimination optionnelle des spots cachés très lente car cell
+picking sur chaque point d'une render window.
+Pistes d'optimisation possible pour vtkECMIntersectionPolyDataFilter::GetInner2 :
+- Utilisation d'un vtkHardwareSelector
+(cf. Rendering/Testing/Cxx/TestAreaSelections.cxx de VTK)
+- Utiliser une colormap adéquate et projeter les ids des mailles, puis
+pour chaque point de la fenêtre, et à partir de la couleur, retrouver l'id de
+la maille.
+
+
+Version 2.48.0 : 10/10/14
+================
+
+Quelques problèmes :
+- Contour des spots => non mis en service (cf.  defines WITH_BORDER_ACTOR).
+- Dans le cas où le rayon intersecte plusieurs surfaces, seule la centrale est
+remplie (spot). Mais on n'a pas les contours complets des différentes zones
+connexes, et la chose n'est pas forcément facile à avoir, et cela risque d'être
+onéreux ... Notamment dans le cas de replis.
+
+ID : pour se débarasser des replis, lors du remplissage des spots, utiliser le
+produit scalaire normale à la maille x axe du cylindre.
+
+Optimisations à envisager.
+
+Classe vtkECMIntersectionPolyDataFilter (qui a vocation à rejoindre le projet
+vtkcontrib).
+
+
+Version 2.47.0 : 18/07/14
+================
+
+Arrêt de l'utilisation des classes vtkECMCylinderSource et 
+vtkJMImplicitPolyDataDistance. Remplacement par la classe
+vtkClippedCylinderSource qui, via un artifice dans
+vtkClippedCylinderSource::RequestData (projection des noeuds de la base du
+cylindre sur la ligne d'intersection avec une surface).
+
+Rem : la classe vtkIntersectionPolyDataFilter contient toutes les informations
+nécessaires à la gestion de la troncature du rayon, mais se contente de
+délimiter cette troncature. Une idée pourrait être de reprendre les
+algorithmes de cette classe (prévoir quelques jours de travail).
+
+
+Version 2.46.1 : 27/05/14
+================
+
+
+Version 2.46.0 : 20/05/14
+================
+
+Rem : ajout temporaire des classes vtkECMCylinderSource et 
+vtkJMImplicitPolyDataDistance, mais elles ont vocation à
+rejoindre le projet vtkcontrib.
+
+
+Version 2.45.0 : 11/04/14
+================
+
+
+Version 2.44.0 : 10/04/14
+================
+
+
+Version 2.43.0 : 04/04/14
+================
+
+- TK_Variants v 1.38.0 (QtUtil v 2.44.0).
+
+
+Version 2.42.0 : 17/12/13
+================
+
+- TK_Variants v 1.34.0 (QtUtil v 2.43.0).
+
+
+Version 2.41.0 : 17/12/13
+================
+
+- TK_Variants v 1.33.0 (TkUtil v 2.34.0).
+- Arrêt Qt 3, support Qt 4.8.5 et 5.1.1.
+- Arrêt VTK 5.1.0.
+
+
+Version 2.40.0 : 15/10/13
+================
+
+- TK_Variants v 1.31.0 (TkUtil v 2.33.0).
+- QtVTKPrintHelper::getVersion
+
+
+Version 2.39.0 : 30/05/13
+================
+
+- TK_Variants v 1.27.0 (TkUtil v 2.32.0).
+
+
+Version 2.38.0 : 14/05/13
+================
+
+- TK_Variants v 1.26.0 (TkUtil v 2.31.0).
+
+
+Version 2.37.0 : 18/01/13
+================
+
+- TK_Variants v 1.24.0 (QtUtil v 2.38.0).
+- Vtk510 et Vtk5100 sur toutes les plates-formes.
+
+
+Version 2.36.0 : 06/12/12
+================
+
+- TK_Variants v 1.23.0 (QtUtil v 2.36.0).
+- Qt 4.7.4
+
+
+Version 2.35.0 : 12/10/12
+================
+
+- TK_Variants v 1.22.0 (TkUtil v 2.29.0, QtUtil v 2.35.0).
+- Arrêt VTK 5.8.0 et Qt 3.
+- Ajout VTK 5.10.0 et Qt 4.7.4.
+
+
+Version 2.34.0 : 24/11/11
+================
+
+- TK_Variants v 1.20.0 (TkUtil v 2.26.0, QtUtil v 2.34.0).
+- VTK 5.8.0.
+
+
+Version 2.33.0 : 09/09/11
+================
+
+- TK_Variants v 1.19.0, ECM_Variants v 1.8.0.
+- TkUtil v 2.25.0.
+- QtUtil v 2.33.0.
+
+
+Version 2.32.0 : 16/03/11
+================
+
+- TK_Variants v 1.17.0 (TkUtil v 2.23.0).
+
+
+Version 2.31.0 : 25/01/11
+================
+
+- TK_Variants v 1.16.0 (TkUtil v 2.22.0).
+
+
+Version 2.30.0 : 13/01/11
+================
+
+- TK_Variants v 1.15.0
+- QtUtil 2.30.0
+
+
+Version 2.28.0 : 15/11/10
+================
+
+- TK_Variants v 1.11.0
+- TkUtil 2.21.0
+- QtUtil 2.28.0
+
+
+Version 2.27.0 : 31/08/10
+================
+
+- TK_Variants v 1.9.0
+- TkUtil 2.20.0
+- QtUtil 2.27.0
+- Arrêt déploiement Qt 4.4.1.
+
+
+Version 2.26.0 : 21/06/10
+================
+
+- TK_Variants v 1.9.0
+- Qt 4.6.2
+
+
+Version 2.25.1 : 04/06/10
+================
+
+- TK_Variants v 1.7.1
+- TkUtil v 2.19.1
+
+
+Version 2.25.0 : 25/05/10
+================
+
+- TK_Variants 1.7.0
+- QtUtil 2.25.0
+
+
+Version 2.24.0 : 13/04/10
+================
+
+- TK_Variants 1.5.0
+- QtUtil 2.24.0
+
+
+Version 2.23.0 : 11/12/09
+================
+
+- TK_Variants 1.2.0
+- Actualisation de la documentation.
+- Portage Qt 4.4.1 (deployee mais non testee).
+
+
+Version 2.22.0 : 30/10/09
+================
+
+Le 26/11/09 : ajout variant MT (multithread) et redeploiement.
+L'usage de ce variant est inutile mais GSCC, dans sa version courante, n'est pas
+en mesure de faire des arbitrages lors qu'une bibliotheque est demandee avec une
+combinaison de variants donnee d'une part et avec des valeurs par defaut d'autre
+part. Le mauvais choix peut etre fait, avec d'eventuelles incompatibilites
+(ex : -DMULTITHREADED_APPLICATION utilise pour certaines composantes, et non
+utilisees pour d'autres).
+
+- Portage Fedora_11__x86_64, arret RH 5 32 bits et +-Nehalem.
+- Arret Qt 4.3.2, portage Qt 4.4.1.
+- Utilisation de ECM_variants.xml/TK_Variants.xml (variants systeme
+d'exploitation/compilateurs utilises).
+
+
+Version 2.21.0 : 13/10/09
+================
+
+Portage sous GSCC.
+
+
+Version 2.20.1 : 02/09/09
+================
+
+Module util : Version 2.20.1
+- QtDoubleTextField::setRange : correctif de bogue. Le nombre de decimales
+etait toujours nul.
+
+
+Version 2.20.0 : 24/07/09
+================
+
+Module util : Version 2.20.0
+- Ajout fichiers QtMinMaxDialog dans l'arborescence subversion.
+- Qt*TextField : nouvelles fonctions getXXX.
+
+Module network : version 2.15.0
+- Suit util
+
+Module vtk : version 2.15.0
+- Suit util
+
+
+Version 2.19.0 : 22/07/09
+================
+
+Module util :
+	- QtTextDialog : methodes getQText, getTextEditor, getCentralLayout,
+	createGui et nouveau constructeur avec fonte + couleurs.
+	- Classe QtScientificTextDialog
+	- QtStringHelper::textToUnicodeGreekText
+
+
+Version 2.18.0 : 09/04/09
+================
+
+Suit TkUtil 2.14.0
+
+
+Version 2.17.0 : 03/04/09
+================
+
+Module util :
+	- QtMessageBox :
+		- Ammelioration sous Qt 4 afin que les lignes soient conservees en tant
+		que ligne, sans ruptures (wrap) effectuees automatiquement par Qt.
+		- Nouvelles services d'affichage avec reponse en retour.
+	- Remplacement d'appels a QMessageBox par QtMessageBox dans :
+		- QtCoordinatesDialog
+		- QtRotationDialog
+		- QtValidatedTextField
+	- QtHelpWindow : correctif de bogues sous Qt 4 :
+		- Callback sourceChanged
+		- Callback print connecte et corrige.
+		- Boutons de la barre d'outils
+	- QtMinMaxDialog fonctionne avec QtHelpWindow.
+	- Portage sous Qt 3.
+
+
+Version 2.16.0 : 23/03/09
+================
+
+Module util :
+	- Classe QtExtMessageBox :
+		- Correctif de bogue dans les layouts sous Qt 4.
+		- Centrage des boutons sous Qt 4.
+
+
+Version 2.15.0 : 04/03/09
+================
+
+Module util :
+	- Classe QtExclusiveActionGroup.
+
+
+Version 2.14.0 : 16/02/09
+================
+
+- Recuperation des classes QtActionAutoLock, QtFontPanel, QtPaintAttributes et
+QtPenPanel issues du module QwtChart.
+
+
+Version 2.13.0 : 28/01/09
+================
+
+Suit TkUtil v 2.12.0.
+Quelques retouches liees au portage Qt 3.3.6.
+
+
+Version 2.12.1 : 09/01/09
+================
+
+Module util :
+	- Correctif classe QtStringHelper (decalage des derniers caracteres grecs).
+
+
+Version 2.12.0 : 25/11/08
+================
+
+Module util :
+	- Modifications API classe QtStringHelper : support de l'unicode pour les
+	caracteres grecs.
+	- Classe QtStringNumberFormatComboBox
+
+
+Version 2.11.0 : 14/11/08
+================
+
+Suit tkutil
+
+Module util :
+	- Classe QtRichTextComboBox
+	- Correctif de bogue dans QtStringHelper::textToRichText (utilisait toujours
+	la fonte grecque et non celle transmise en argument).
+
+
+Version 2.9.0 : 10/06/08
+===============
+
+Module util :
+
+- Classes QtMinMaxDialog et derivees.
+
+
+Version 2.8.1 : 07/04/08
+===============
+
+Module util :
+	- Classes QtValidatedTextField, QtIntTextField, QtDoubleTextField.
+	- Classe QtStringHelper.
+	- Correctif dans QtWidgetAutoLock::setEnabled
+
+
+Versions antérieures :
+======================
+
+Voir fichier versions.old.
+
