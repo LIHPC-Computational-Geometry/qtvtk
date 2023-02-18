@@ -6,7 +6,7 @@
         "cacheVariables": {
           "DQVTK_WIDGET": "ON",
           "DUSE_OPENGL_BACKEND": "ON",
-          "CMAKE_INSTALL_PREFIX": "$env{INSTALL_DIR}/vtkcontrib;$env{INSTALL_DIR}/qtutil;$env{INSTALL_DIR}/tkutil;$env{INSTALL_DIR}/VTK-7.1.1"
+          "CMAKE_PREFIX_PATH": "$env{INSTALL_DIR}/vtkcontrib;$env{INSTALL_DIR}/qtutil;$env{INSTALL_DIR}/tkutil;$env{INSTALL_DIR}/VTK-7.1.1"
         }
       }
     ]
