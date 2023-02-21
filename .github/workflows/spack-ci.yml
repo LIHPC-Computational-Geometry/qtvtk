@@ -12,4 +12,4 @@ jobs:
     name: Call Spack reusable workflow
     uses: LIHPC-Computational-Geometry/lihpccg-ci/.github/workflows/spack-reusable.yml@main
     with:
-      test-link-options: "-QVTK_WIDGET:BOOL=ON -DUSE_OPENGL_BACKEND:BOOL=ON"
+      test-link-options: "-DQVTK_WIDGET:BOOL=ON -DUSE_OPENGL_BACKEND:BOOL=ON"
