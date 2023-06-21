@@ -116,6 +116,22 @@ void QtVtkGraphicWidget::setInteractor (QVTKInteractor* interactor)
 }	// QtVtkGraphicWidget::setInteractor
 
 
+#if (VTK_MAJOR_VERSION > 9) || ((VTK_MAJOR_VERSION == 9) && (VTK_MINOR_VERSION >= 2))
+
+void QtVtkGraphicWidget::SetRenderWindow (vtkRenderWindow* window)	// v 8.1.1
+{
+	QVTKOpenGLNativeWidget::setRenderWindow (window);
+}	// QtVtkGraphicWidget::SetRenderWindow
+
+
+vtkRenderWindow* QtVtkGraphicWidget::GetRenderWindow ( )	// v 8.1.1
+{
+	QVTKOpenGLNativeWidget::renderWindow ( );
+}	// QtVtkGraphicWidget::GetRenderWindow
+
+#endif
+
+
 void QtVtkGraphicWidget::enterEvent (QEvent* event)
 {
 	setFocus ( );

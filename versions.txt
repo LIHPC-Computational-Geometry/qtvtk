@@ -1,9 +1,48 @@
 A FAIRE : tester le vtkIntersectionPolyDataFilter de VTK 7, voir si de base il propose les services attendus (Inner, ...).
 
+
+Version 8.4.0 : 21/06/23
+===============
+
+Sortie du projet GUIToolkits.
+
+
+Version 8.3.0 : 31/03/23
+===============
+
+Portage GitHub environnement podman/spack/tests CI.
+
+
+Version 8.2.0 : 14/02/23
+===============
+
+Déplacement de l'inclusion qtvtk_common.cmake du CMakeLists.txt racine vers le CMakeLists.txt de la composante QtVtk.
+
+
+Version 8.1.1 : 07/02/23
+===============
+
+Retouches cmake : blindage pour cas non gérés (versions/options VTK).
+
+Portage VTK 9.2.5 : retouches QtVtkGraphicWidget.
+
+
+Version 8.1.0 : 17/01/23
+===============
+
+Retouches cmake/qtvtk_common.cmake : suppression -DVTKGL (apporté par VtkContrib).
+
+
+Version 8.0.0 : 10/01/23
+===============
+
+Intégration au projet GUIToolkits.
+
+
 Version 7.14.8 : 25/11/22
 ================
 
-Un peu de nettoyage (hors sources).
+Suppression répertoire module.
 
 
 Version 7.14.7 : 05/04/22
@@ -40,7 +79,7 @@ Retouches cmake, portage VTK 9.1.0 RC 2
 Version 7.14.2 : 10/09/21
 ===============
 
-Suppression de mini gros-mots et de balises EXPURGE. Suppression des commentaires "Chambre d'expérience" de ce fichier.
+Divers nettoyage. Suppression des commentaires "Chambre d'expérience" de ce fichier.
 
 
 Version 7.14.1 : 24/08/21
@@ -179,8 +218,7 @@ Version 7.6.0 : 04/06/20 Révisions svn 929/930
 ===============
 
 Fin réintégration en environnement CEA suite confinement covid-19.
-Procédure d'exportation ouverte des sources : cible export avec script export.sh (réalisation d'un tarball filtré,
-sans gros mots, reposant sur la commande expurge réalisée à cet effet et sur la commande tar).
+Procédure d'exportation ouverte des sources : cible export avec script export.sh.
 cmake/workaround.cmake utilise maintenant la commande lsb_release -d à la place du tandem uname/commande locale. A
 finaliser sur calculateur.
 
