@@ -1,15 +1,18 @@
 set (CURRENT_PACKAGE_NAME "QtVtk")
 set (CURRENT_PACKAGE_MACRO_NAME "QT_VTK")
 
-include (${CMAKE_SOURCE_DIR}/cmake/version.cmake)
-include (${CMAKE_SOURCE_DIR}/cmake/common.cmake)
-include (${CMAKE_SOURCE_DIR}/cmake/workarounds.cmake)
+find_package (GUIToolkitsVariables)
 
-find_package (VtkContrib 4 REQUIRED)
-find_package (QtUtil 5 REQUIRED)
-find_package(Qt5Core NO_CMAKE_SYSTEM_PATH)	# In order to enable moc ...
+include (${CMAKE_SOURCE_DIR}/cmake/version.cmake)
+include (${GUIToolkitsVariables_CMAKE_DIR}/common.cmake)
+include (${GUIToolkitsVariables_CMAKE_DIR}/workarounds.cmake)
+
+find_package (VtkContrib 5 REQUIRED)
+include (${CMAKE_SOURCE_DIR}/cmake/qtvtk_common.cmake)	# Après VtkContrib qui positionne les variables VTK_7, VTK_8 et VTK_9
+find_package (QtUtil 6 REQUIRED)
+find_package(Qt5Core NO_CMAKE_SYSTEM_PATH)				# In order to enable moc ...
 if (VTK_9)
-	find_package(VTK COMPONENTS GUISupportQt IOExportGL2PS FiltersExtraction)
+	find_package (VTK COMPONENTS GUISupportQt IOExportGL2PS FiltersExtraction)
 endif (VTK_9)
 
 file (GLOB HEADERS public/${CURRENT_PACKAGE_NAME}/*.h)
@@ -34,10 +37,13 @@ if (VTK_9)
 elseif (VTK_8)
 	target_link_libraries (QtVtk PUBLIC ${VTK_LIBRARIES})
 else (VTK_8)	# => VTK_7
+	if (NOT QVTK_WIDGET)
+		message (FATAL_ERROR "==> UTILISEZ -DQVTK_WIDGET:BOOL=ON EN VTK 7 A LA LIGNE DE COMMANDE (vtkGenericOpenGLRenderWindow non disponible en VTK 7).")
+	endif (NOT QVTK_WIDGET)
 	if (USE_OPENGL_BACKEND)
 		target_link_libraries (QtVtk PUBLIC vtkGUISupportQt)		# OpenGL backend, QVTKWidget
 	else (USE_OPENGL_BACKEND)
-		target_link_libraries (QtVtk PUBLIC vtkGUISupportQtOpenGL)	# OpenGL2 backend, QVTKWidget2
+		target_link_libraries (QtVtk PUBLIC vtkGUISupportQtOpenGL)	# OpenGL2 backend, vtkGenericOpenGLRenderWindow (voire QVTKWidget2)
 	endif (USE_OPENGL_BACKEND)
 endif(VTK_9)
 

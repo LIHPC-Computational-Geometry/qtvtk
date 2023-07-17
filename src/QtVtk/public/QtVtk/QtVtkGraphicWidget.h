@@ -25,6 +25,7 @@
 #include <QVTKInteractor.h>
 
 #include <vtkInteractorStyle.h>
+#include <vtkVersionMacros.h>	// v 8.1.1
 
 
 /**
@@ -59,7 +60,10 @@ class QtVtkGraphicWidget : public QVTKOpenGLWidget
 	virtual void setRenderWindow (vtkRenderWindow*);
 	virtual QVTKInteractor* getInteractor ( );
 	virtual void setInteractor (QVTKInteractor*);
-	
+#if (VTK_MAJOR_VERSION > 9) || ((VTK_MAJOR_VERSION == 9) && (VTK_MINOR_VERSION >= 2))
+	virtual void SetRenderWindow (vtkRenderWindow*);	// v 8.1.1
+	virtual vtkRenderWindow* GetRenderWindow ( );		// v 8.1.1
+#endif
 
 	protected :
 
