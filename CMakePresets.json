@@ -6,6 +6,7 @@
         "cacheVariables": {
           "QVTK_WIDGET": "ON",
           "USE_OPENGL_BACKEND": "ON",
+          "GUIToolkitsVariables_ROOT": "$env{INSTALL_DIR}/guitoolkitsvariables",
           "VtkContrib_ROOT": "$env{INSTALL_DIR}/vtkcontrib",
           "QtUtil_ROOT": "$env{INSTALL_DIR}/qtutil",
           "TkUtil_ROOT": "$env{INSTALL_DIR}/tkutil",
