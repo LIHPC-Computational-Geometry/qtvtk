@@ -1,5 +1,10 @@
 A FAIRE : tester le vtkIntersectionPolyDataFilter de VTK 7, voir si de base il propose les services attendus (Inner, ...).
 
+Version 8.5.0 : 13/12/23
+===============
+
+Portage Qt 6/QtUtil v 6.4.0/GUIToolkitsVariables v 1.4.0.
+
 
 Version 8.4.0 : 21/06/23
 ===============

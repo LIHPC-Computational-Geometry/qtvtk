@@ -5,12 +5,13 @@ find_package (GUIToolkitsVariables)
 
 include (${CMAKE_SOURCE_DIR}/cmake/version.cmake)
 include (${GUIToolkitsVariables_CMAKE_DIR}/common.cmake)
+include (${GUIToolkitsVariables_CMAKE_DIR}/common_qt.cmake)
 include (${GUIToolkitsVariables_CMAKE_DIR}/workarounds.cmake)
 
 find_package (VtkContrib 5 REQUIRED)
 include (${CMAKE_SOURCE_DIR}/cmake/qtvtk_common.cmake)	# Après VtkContrib qui positionne les variables VTK_7, VTK_8 et VTK_9
 find_package (QtUtil 6 REQUIRED)
-find_package(Qt5Core NO_CMAKE_SYSTEM_PATH)				# In order to enable moc ...
+find_package(Qt${QT_MAJOR}Core NO_CMAKE_SYSTEM_PATH)	# In order to enable moc ...
 if (VTK_9)
 	find_package (VTK COMPONENTS GUISupportQt IOExportGL2PS FiltersExtraction)
 endif (VTK_9)

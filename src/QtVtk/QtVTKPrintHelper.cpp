@@ -95,8 +95,10 @@ QtVTKPrintHelper::PrinterStatus QtVTKPrintHelper::print (vtkRenderWindow& window
 		// S'assurer que la boite de dialogue d'impression ait bien disparue.
 		if (0 != top)
 			top->raise ( );
+#ifdef QT_5
 		while (true == qApp->hasPendingEvents ( ))
 			qApp->processEvents ( );
+#endif	// QT_5
 		QtAutoWaitingCursor	cursor (true);
 		if (printer.outputFileName ( ).size ( ) != 0)
 		{
@@ -125,7 +127,7 @@ QtVTKPrintHelper::PrinterStatus QtVTKPrintHelper::print (vtkRenderWindow& window
 			string	tmpPSFile (tmpFile + ".ps");
 			PrintCommand::CommandOptions	options;
 			options.eraseFile	= true;
-			options.copiesNumber= (size_t)printer.numCopies ( );
+			options.copiesNumber= (size_t)printer.copyCount ( );
 			printToFile (window, tmpPSFile, 720);
 			string		printerName	= printer.printerName ( ).toStdString ( );
 			printToPrinter (tmpPSFile, printerName, options);
@@ -206,8 +208,10 @@ QtVTKPrintHelper::PrinterStatus QtVTKPrintHelper::printToFile (vtkRenderWindow& 
 		// S'assurer que la boite de dialogue d'impression ait bien disparue.
 		if (0 != top)
 			top->raise ( );
+#ifdef QT_5
 		while (true == qApp->hasPendingEvents ( ))
 			qApp->processEvents ( );
+#endif	// QT_5
 		QtAutoWaitingCursor	cursor (true);
 
 		QStringList	fileList	= dialog.selectedFiles ( );
@@ -262,8 +266,10 @@ QtVTKPrintHelper::PrinterStatus QtVTKPrintHelper::printTo4kFile (vtkRenderWindow
 		// S'assurer que la boite de dialogue d'impression ait bien disparue.
 		if (0 != top)
 			top->raise ( );
+#ifdef QT_5
 		while (true == qApp->hasPendingEvents ( ))
 			qApp->processEvents ( );
+#endif	// QT_5
 		QtAutoWaitingCursor	cursor (true);
 
 		QStringList	fileList	= dialog.selectedFiles ( );
