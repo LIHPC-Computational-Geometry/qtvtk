@@ -132,7 +132,11 @@ vtkRenderWindow* QtVtkGraphicWidget::GetRenderWindow ( )	// v 8.1.1
 #endif
 
 
+#ifdef QT_5
 void QtVtkGraphicWidget::enterEvent (QEvent* event)
+#else	// QT_5
+void QtVtkGraphicWidget::enterEvent (QEnterEvent* event)
+#endif	// QT_5
 {
 	setFocus ( );
 	

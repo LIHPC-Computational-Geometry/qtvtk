@@ -67,9 +67,13 @@ class QtVtkGraphicWidget : public QVTKOpenGLWidget
 
 	protected :
 
+#ifdef QT_5
 	virtual void enterEvent (QEvent* event);
+#else	// QT_5
+	virtual void enterEvent (QEnterEvent* event);
+#endif	// QT_5
 	virtual void focusInEvent (QFocusEvent* event);
-
+	
 	
 	private :
 	
