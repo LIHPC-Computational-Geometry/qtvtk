@@ -1,5 +1,11 @@
 A FAIRE : tester le vtkIntersectionPolyDataFilter de VTK 7, voir si de base il propose les services attendus (Inner, ...).
 
+Version 8.5.1 : 14/06/24
+===============
+
+Portage cmake VTK 7.1.1/9.3.0 GUIToolkitsVariables v 1.5.0 (VTK_MAJOR_VERSION).
+
+
 Version 8.5.0 : 13/12/23
 ===============
 
