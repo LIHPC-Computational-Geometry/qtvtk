@@ -2,6 +2,7 @@
 
 #include <TkUtil/InternalError.h>
 
+#include <vtkVersion.h>			// VTK_MAJOR_VERSION
 #include <vtkSmartPointer.h>
 
 #include <assert.h>
