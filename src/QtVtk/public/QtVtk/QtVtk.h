@@ -30,9 +30,12 @@ class QtVtk
 	public :
 
 	/**
-	 * Initialisation des services..
+	 * Initialisation des services.
+	 * @param	forceSoftwarePrinter : true si on force des impressions n'utilisant pas le buffer de la fenêtre Open GL. Les impressions sont plus lentes et coûteuses
+	 * 			en mémoire, mais le rendu "hard" dysfonctionne dans certaines configurations, voire peut planter une station ou session de machine virtuelle. Vaut true
+	 * 			par défaut.
 	 */
-	static void initialize ( );
+	static void initialize (bool forceSoftwarePrinter = true);
 
 	/**
 	 * Arrêts des services.
@@ -63,6 +66,14 @@ class QtVtk
 	 * @see			getHardwareSelectionWindow
 	 */
 	static vtkRenderer& getHardwareSelectionRenderer ( );
+
+
+	/** true si on force des impressions n'utilisant pas le buffer de la fenêtre Open GL. Les impressions sont plus lentes et coûteuses
+	 * en mémoire, mais le rendu "hard" dysfonctionne dans certaines configurations, voire peut planter une station ou session de machine virtuelle.
+	 * Vaut true par défaut.
+	 * @since		8.6.0
+	 */
+	static bool		forceSoftwarePrinter;
 
 
 	private :
