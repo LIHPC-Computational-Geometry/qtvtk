@@ -17,6 +17,7 @@ static vtkSmartPointer<vtkHardwareSelector>	hardwareSelector;
 static vtkSmartPointer<vtkRenderWindow>		hardwareSelectionWindow;
 static vtkSmartPointer<vtkRenderer>			hardwareSelectionRenderer;
 
+bool QtVtk::forceSoftwarePrinter	= true;		// v 8.6.0
 
 
 QtVtk::QtVtk ( )
@@ -44,8 +45,9 @@ QtVtk::~QtVtk ( )
 }	// QtVtk::~QtVtk
 
 
-void QtVtk::initialize ( )
+void QtVtk::initialize (bool softwarePrinter)
 {
+	forceSoftwarePrinter	= softwarePrinter;		// v 8.6.0
 //	Q_INIT_RESOURCE (QtVtk);
 
 /*	if (0 != QApplication::desktop ( ))

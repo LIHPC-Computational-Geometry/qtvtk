@@ -4,6 +4,7 @@
 // voir fichier /etc/printcap : liste des imprimantes
 
 #include <QtVtk/QtVTKPrintHelper.h>
+#include <QtVtk/QtVtk.h>
 #include <QtUtil/QtMessageBox.h>
 
 #include <TkUtil/Exception.h>
@@ -305,8 +306,7 @@ void QtVTKPrintHelper::printToFile (vtkRenderWindow& window, const string& fileN
 	if ((string::npos == dotPos) || (string::npos == fileName.length ( ) - 1))
 	{
 		UTF8String	error (charset);
-		error << "Impossibilité de déterminer le format du fichier à "
-		      << "partir de son extension.\n"
+		error << "Impossibilité de déterminer le format du fichier à partir de son extension.\n"
 		      << "Extensions possibles : "
 		      << ".ps .eps .jpg .jpeg .bmp .png .pnm .tiff .pdf";
 		throw Exception (error);
@@ -340,36 +340,39 @@ void QtVTKPrintHelper::printToFile (vtkRenderWindow& window, const string& fileN
 	}	// EPS ou PDF
 	
 	// V 7.14.7 : on s'assure que la copie du buffer graphique pourra fonctionner, à savoir qu'on fonctionne sur une
-	// machine aveccarte graphique, ou, à défaut, pas sur une machine virtuelle :
+	// machine avec carte graphique, ou, à défaut, pas sur une machine virtuelle :
 	static bool	first	= true;
 	static bool	useHard	= true;
-	if (true == first)
+	if (true == QtVtk::forceSoftwarePrinter)
 	{
-		const string	glVendor ((const char*)glGetString (GL_VENDOR));		// NVIDIA, ATI, Intel, ...
-		const string	glRenderer ((const char*)glGetString (GL_RENDERER));	// Quattro, Mesa DRI Intel, ...
-		if ((true == glVendor.empty ( )) || (true == glRenderer.empty ( )))
-			useHard	= false;
-		if (NULL != strcasestr (glRenderer.c_str ( ), "llvmpipe"))
-			useHard	= false;
-		if (false == useHard)	// Pas de hard détecté, par sécurité on fait une impression offscreen :
-			cout << "Absence de carte graphique détectée, les impressions dans un fichier seront effectuées en rendu logiciel par sécurité." << endl;
-		else
+		if (true == first)
 		{
-			if (true == MachineData::isVirtualMachine ( ))
-			{
+			const string	glVendor ((const char*)glGetString (GL_VENDOR));		// NVIDIA, ATI, Intel, ...
+			const string	glRenderer ((const char*)glGetString (GL_RENDERER));	// Quattro, Mesa DRI Intel, ...
+			if ((true == glVendor.empty ( )) || (true == glRenderer.empty ( )))
 				useHard	= false;
-				cout << "Machine virtuelle détectée, les impressions dans un fichier seront effectuées en rendu logiciel par sécurité." << endl;
-			}	// if (true == MachineData::isVirtualMachine ( ))
-		}	// else if (false == useHard)
-		first	= false;
-	}	// if (true == first)
+			if (NULL != strcasestr (glRenderer.c_str ( ), "llvmpipe"))
+				useHard	= false;
+			if (false == useHard)	// Pas de hard détecté, par sécurité on fait une impression offscreen :
+				cout << "Absence de carte graphique détectée, les impressions dans un fichier seront effectuées en rendu logiciel par sécurité." << endl;
+			else
+			{
+				if (true == MachineData::isVirtualMachine ( ))
+				{
+					useHard	= false;
+					cout << "Machine virtuelle détectée, les impressions dans un fichier seront effectuées en rendu logiciel par sécurité." << endl;
+				}	// if (true == MachineData::isVirtualMachine ( ))
+			}	// else if (false == useHard)
+			first	= false;
+		}	// if (true == first)
+	}	// if (true == QtVtk::forceSoftwarePrinter)
 
-	if (false == useHard)
+	if ((true == QtVtk::forceSoftwarePrinter) || (false == useHard))
 	{
 		printToFile (window, fileName, window.GetSize ( )[0], window.GetSize ( )[1]);
 		return;
-	}	// if (false == useHard)
-	
+	}	// if ((true == QtVtk::forceSoftwarePrinter) || (false == useHard))
+
 	// Impression raster : on passe par un image.
 	vtkWindowToImageFilter*	windowToImageFilter	= vtkWindowToImageFilter::New ( );
 	vtkImageWriter*		writer			= createWriter (fileName);

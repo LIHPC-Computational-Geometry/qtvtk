@@ -1,5 +1,12 @@
 A FAIRE : tester le vtkIntersectionPolyDataFilter de VTK 7, voir si de base il propose les services attendus (Inner, ...).
 
+Version 8.6.0 : 22/11/24
+===============
+
+Par défaut les impressions sont toutes faites en rendu soft. En effet, le rendu hard est très dégradé dans des configurations récentes,
+et peut planter une session effectuées dans une machine virtuelle.
+
+
 Version 8.5.1 : 14/06/24
 ===============
 
