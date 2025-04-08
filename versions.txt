@@ -1,5 +1,12 @@
 A FAIRE : tester le vtkIntersectionPolyDataFilter de VTK 7, voir si de base il propose les services attendus (Inner, ...).
 
+Version 8.7.0 : 08/04/25
+===============
+
+Classes QtVtkViewPointToolBar et QtVtkViewPointToolButton.
+Ce projet dépend maintenant de PrefsQt v 6.x.
+
+
 Version 8.6.0 : 22/11/24
 ===============
 

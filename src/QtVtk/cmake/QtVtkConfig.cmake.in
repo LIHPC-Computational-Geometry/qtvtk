@@ -1,6 +1,6 @@
 include(CMakeFindDependencyMacro)
 find_dependency (VtkContrib)
-find_dependency (QtUtil)
+find_dependency (PrefsQt)
 
 @PACKAGE_INIT@
 

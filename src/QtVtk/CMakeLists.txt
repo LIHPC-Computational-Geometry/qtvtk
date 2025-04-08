@@ -10,20 +10,21 @@ include (${GUIToolkitsVariables_CMAKE_DIR}/workarounds.cmake)
 
 find_package (VtkContrib 5 REQUIRED)
 include (${CMAKE_SOURCE_DIR}/cmake/qtvtk_common.cmake)	# Après VtkContrib qui positionne les variables VTK_7, VTK_8 et VTK_9
-find_package (QtUtil 6 REQUIRED)
+find_package (PrefsQt 6 REQUIRED)
 find_package(Qt${QT_MAJOR}Core NO_CMAKE_SYSTEM_PATH)	# In order to enable moc ...
 if (VTK_9)
 	find_package (VTK COMPONENTS GUISupportQt IOExportGL2PS FiltersExtraction)
 endif (VTK_9)
 
 file (GLOB HEADERS public/${CURRENT_PACKAGE_NAME}/*.h)
-file (GLOB CPP_SOURCES *.cpp)
+file (GLOB CPP_SOURCES *.cpp *.qrc)
 
 # On ajoute les en-têtes aux sources. C'est utile pour cmake dans certains cas,
 # par exemple lorsqu'ils doivent être pré-processés (moc, ...).
 add_library (QtVtk ${CPP_SOURCES} ${HEADERS})
 set (ALL_TARGETS QtVtk)
 set_property (TARGET QtVtk PROPERTY AUTOMOC ON)
+set_property (TARGET QtVtk PROPERTY AUTORCC ON)
 set_property (TARGET QtVtk PROPERTY VERSION ${QT_VTK_VERSION})
 set_property (TARGET QtVtk PROPERTY SOVERSION ${QT_VTK_MAJOR_VERSION})
 # Rem : en Qt v 4.* on utilise -DUSE_QT_WEBKIT
@@ -51,7 +52,7 @@ endif(VTK_9)
 target_compile_definitions (QtVtk PUBLIC ${QT_VTK_PUBLIC_FLAGS})
 target_compile_definitions (QtVtk PRIVATE ${QT_VTK_PRIVATE_FLAGS} ${QT_VTK_PRIVATE_HELP_FLAGS})
 target_compile_options (QtVtk PRIVATE ${SHARED_CFLAGS})	# Requested by Qt ...
-target_link_libraries (QtVtk PUBLIC QtUtil::QtUtil VtkContrib::VtkContrib)
+target_link_libraries (QtVtk PUBLIC PrefsQt::PrefsQt VtkContrib::VtkContrib)
 
 # Etre capable une fois installée de retrouver vtk*, ... :
 # (Rem : en son absence on a Set runtime path of "/tmp/pignerol/install/lib/libQtVtk.so.5.0.0" to "") ...
