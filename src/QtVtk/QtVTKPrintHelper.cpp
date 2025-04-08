@@ -12,6 +12,7 @@
 #include <TkUtil/MachineData.h>
 #include <TkUtil/PrintCommand.h>
 #include <QtUtil/QtAutoWaitingCursor.h>
+#include <QtUtil/QtFileDialogUtilities.h>
 #include <QtUtil/QtUnicodeHelper.h>
 
 #include <vtkWindowToImageFilter.h>
@@ -142,47 +143,6 @@ QtVTKPrintHelper::PrinterStatus QtVTKPrintHelper::print (vtkRenderWindow& window
 }	// QtVTKPrintHelper::print
 
 
-/**
- * @return	La première extension du filtre Qt reçu en argument (format <I>NOM (*.ext1 *.ext2 ... *.extn)</I>.
- */
-static string getFirstExtension (const string& filter)	// v 7.4.0
-{
-	UTF8String	prepared (filter);
-	prepared.replace (string ("("), string (" "), true);	// => nom *.ext1)
-	prepared.replace (string ("*"), string (""), true);	// => nom .ext1)
-	prepared.replace (string (")"), string (""), true);	// => nom *.ext1
-	istringstream	stream (prepared.utf8 ( ));
-	string	name, ext;
-	stream >> name >> ext;
-
-
-	if ((false == stream.fail ( )) && (false == stream.bad ( )))
-		return ext;
-
-	return string ( );
-}	// getFirstExtension
-
-
-/**
- * @param	Nom de fichier proposé
- * @param	Filtre Qt utilisé lors du choix du fichier
- * @return	Le nom de fichier avec extension. Si le nom proposé n'en n'a pas alors la première du filtre est ajoutée.
- */
-static string completeFileName (const string& path, const string& filter)	// v 7.4.0
-{
-	File	file (path);
-	if (0 != file.getExtension ( ).length ( ))
-		return path;
-
-	// Le fichier n'a pas d'extension, on rajoute la première du filtre 
-	const string	ext	= getFirstExtension (filter);
-	UTF8String	newPath (charset);
-	newPath << path << ext;
-
-	return newPath.utf8 ( );
-}	// completeFileName
-
-
 QtVTKPrintHelper::PrinterStatus QtVTKPrintHelper::printToFile (vtkRenderWindow& window, QWidget* top)
 {
 	QPrinter		printer;
@@ -219,8 +179,7 @@ QtVTKPrintHelper::PrinterStatus QtVTKPrintHelper::printToFile (vtkRenderWindow& 
 		if (1 != fileList.size ( ))
 			throw Exception ("Erreur, la liste de fichiers d'impression ne contient pas qu'un fichier.");
 
-//		string	fileName (fileList [0].toStdString ( ));
-		string	fileName (completeFileName (fileList [0].toStdString ( ), dialog.selectedNameFilter ( ).toStdString ( )));	// v 7.4.0
+		string	fileName (QtFileDialogUtilities::completeFileName (fileList [0].toStdString ( ), dialog.selectedNameFilter ( ).toStdString ( )));	// v 7.4.0
 		File	file (fileName);
 
 		if (false == file.isWritable ( ))
@@ -277,7 +236,7 @@ QtVTKPrintHelper::PrinterStatus QtVTKPrintHelper::printTo4kFile (vtkRenderWindow
 		if (1 != fileList.size ( ))
 			throw Exception ("Erreur, la liste de fichiers d'impression ne contient pas qu'un fichier.");
 
-		const string	fileName (completeFileName (fileList [0].toStdString ( ), dialog.selectedNameFilter ( ).toStdString ( )));
+		const string	fileName (QtFileDialogUtilities::completeFileName (fileList [0].toStdString ( ), dialog.selectedNameFilter ( ).toStdString ( )));
 		File	file (fileName);
 		if (false == file.isWritable ( ))
 		{
