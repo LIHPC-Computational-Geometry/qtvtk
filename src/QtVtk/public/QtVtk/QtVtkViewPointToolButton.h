@@ -82,6 +82,11 @@ class QtVtkViewPointToolButton : public QToolButton
 	 */
 	virtual void setViewPoint (const VtkViewPoint& vp);
 
+	/**
+	 * Réinitialise le point de vue à partir du point de vue transmis en argument.
+	 */
+	virtual void reinitializeViewPoint (vtkCamera& camera, vtkRenderer* renderer);
+	
 
 	protected slots :
 
@@ -89,6 +94,11 @@ class QtVtkViewPointToolButton : public QToolButton
 	 * Modifie la vue conformément aux paramétrage de ce point de vue.
 	 */
 	virtual void applyViewPointCallback ( );
+	
+	/**
+	 * Réinitialise le point de vue à partir de la vue courante.
+	 */
+	virtual void reinitializeViewPointCallback ( );
 
 	/**
 	 * Affiche une boite de dialogue de modification du point de vue.

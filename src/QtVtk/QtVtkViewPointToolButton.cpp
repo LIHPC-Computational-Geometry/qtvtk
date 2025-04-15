@@ -174,16 +174,25 @@ QtVtkViewPointToolButton::QtVtkViewPointToolButton (QWidget* parent, const std::
 		_renderer->Register (0);
 
 	QMenu*	menu	= new QMenu (this);
+	menu->setToolTipsVisible (true);
 	QAction*	action	= new QAction ("Appliquer", this);
+	action->setToolTip (QSTR ("Applique le paramétrage du point de vue à la vue courante."));
 	connect (action, SIGNAL (triggered ( )), this, SLOT (applyViewPointCallback ( )));
 	menu->addAction (action);
+	action	= new QAction ("Réinitialiser", this);
+	connect (action, SIGNAL (triggered ( )), this, SLOT (reinitializeViewPointCallback ( )));
+	action->setToolTip (QSTR ("Réinitialise le point de vue à partir de la vue courante."));
+	menu->addAction (action);
 	action	= new QAction ("Modifier ...", this);
+	action->setToolTip (QSTR ("Affiche une boite de dialogue de modification du paramétrage du point de vue."));
 	connect (action, SIGNAL (triggered ( )), this, SLOT (editViewPointCallback ( )));
 	menu->addAction (action);
 	action	= new QAction ("Supprimer ...", this);
+	action->setToolTip (QSTR ("Supprime ce point de vue."));
 	connect (action, SIGNAL (triggered ( )), this, SLOT (removeViewPointCallback ( )));
 	menu->addAction (action);
 	action	= new QAction ("Exporter ...", this);
+	action->setToolTip (QSTR ("Enregistre le paramétrage de ce point de vue dans un fichier XML."));
 	connect (action, SIGNAL (triggered ( )), this, SLOT (exportViewPointCallback ( )));
 	menu->addAction (action);
 	setMenu (menu);
@@ -203,16 +212,25 @@ QtVtkViewPointToolButton::QtVtkViewPointToolButton (QWidget* parent, const strin
 		_renderer->Register (0);
 
 	QMenu*	menu	= new QMenu (this);
+	menu->setToolTipsVisible (true);
 	QAction*	action	= new QAction ("Appliquer", this);
+	action->setToolTip (QSTR ("Applique le paramétrage du point de vue à la vue courante."));
 	connect (action, SIGNAL (triggered ( )), this, SLOT (applyViewPointCallback ( )));
 	menu->addAction (action);
+	action	= new QAction ("Réinitialiser", this);
+	connect (action, SIGNAL (triggered ( )), this, SLOT (reinitializeViewPointCallback ( )));
+	action->setToolTip (QSTR ("Réinitialise le point de vue à partir de la vue courante."));
+	menu->addAction (action);
 	action	= new QAction ("Modifier ...", this);
+	action->setToolTip (QSTR ("Affiche une boite de dialogue de modification du paramétrage du point de vue."));
 	connect (action, SIGNAL (triggered ( )), this, SLOT (editViewPointCallback ( )));
 	menu->addAction (action);
 	action	= new QAction ("Supprimer ...", this);
+	action->setToolTip (QSTR ("Supprime ce point de vue."));
 	connect (action, SIGNAL (triggered ( )), this, SLOT (removeViewPointCallback ( )));
 	menu->addAction (action);
 	action	= new QAction ("Exporter ...", this);
+	action->setToolTip (QSTR ("Enregistre le paramétrage de ce point de vue dans un fichier XML."));
 	connect (action, SIGNAL (triggered ( )), this, SLOT (exportViewPointCallback ( )));
 	menu->addAction (action);
 	setMenu (menu);
@@ -259,6 +277,27 @@ void QtVtkViewPointToolButton::setViewPoint (const QtVtkViewPointToolButton::Vtk
 }	// QtVtkViewPointToolButton::setViewPoint
 
 
+void QtVtkViewPointToolButton::reinitializeViewPoint (vtkCamera& camera, vtkRenderer* renderer)
+{
+	if (&camera != _camera)
+	{
+		if (0 != _camera)
+			_camera->UnRegister (0);
+		_camera	= &camera;
+		_camera->Register (0);
+	}	// if (&camera != _camera)
+	_viewPoint		= *_camera;
+	if (_renderer != renderer)
+	{
+		if (0 != _renderer)
+			_renderer->UnRegister (0);
+		_renderer	= renderer;
+		if (0 != _renderer)
+			_renderer->Register (0);
+	}	// if (_renderer != renderer)
+}	// QtVtkViewPointToolButton::reinitializeViewPoint
+
+
 void QtVtkViewPointToolButton::applyViewPointCallback ( )
 {
 	assert (0 != _camera && "QtVtkViewPointToolButton::applyViewPointCallback : null camera");
@@ -274,6 +313,13 @@ void QtVtkViewPointToolButton::applyViewPointCallback ( )
 			_renderer->GetRenderWindow ( )->Render ( );
 	}	// if (0 != _renderer)
 }	// QtVtkViewPointToolButton::applyViewPointCallback
+
+
+void QtVtkViewPointToolButton::reinitializeViewPointCallback ( )
+{
+	assert (0 != _camera && "QtVtkViewPointToolButton::reinitializeViewPointCallback : null camera");
+	reinitializeViewPoint (*_camera, _renderer);
+}	// QtVtkViewPointToolButton::reinitializeViewPointCallback
 
 
 void QtVtkViewPointToolButton::editViewPointCallback ( )

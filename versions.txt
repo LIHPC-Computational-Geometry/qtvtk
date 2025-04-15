@@ -1,5 +1,11 @@
 A FAIRE : tester le vtkIntersectionPolyDataFilter de VTK 7, voir si de base il propose les services attendus (Inner, ...).
 
+Version 8.8.0 : 15/04/25
+===============
+
+Méthode QtVtkViewPointToolButton::reinitializeViewPoint + activation tooltips.
+
+
 Version 8.7.0 : 08/04/25
 ===============
 
