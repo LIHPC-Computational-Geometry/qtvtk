@@ -1,5 +1,11 @@
 A FAIRE : tester le vtkIntersectionPolyDataFilter de VTK 7, voir si de base il propose les services attendus (Inner, ...).
 
+Version 8.8.1 : 18/04/25
+===============
+
+Nouvelles icônes pour import/export points de vue.
+
+
 Version 8.8.0 : 15/04/25
 ===============
 
