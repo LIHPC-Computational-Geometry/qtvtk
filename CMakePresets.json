@@ -9,6 +9,7 @@
           "GUIToolkitsVariables_ROOT": "$env{INSTALL_DIR}/guitoolkitsvariables",
           "VtkContrib_ROOT": "$env{INSTALL_DIR}/vtkcontrib",
           "QtUtil_ROOT": "$env{INSTALL_DIR}/qtutil",
+          "PrefsQt_ROOT": "$env{INSTALL_DIR}/preferences",
           "TkUtil_ROOT": "$env{INSTALL_DIR}/tkutil",
           "VTK_ROOT": "$env{INSTALL_DIR}/VTK-7.1.1"
         }

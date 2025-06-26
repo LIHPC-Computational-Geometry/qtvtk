@@ -1,5 +1,11 @@
 A FAIRE : tester le vtkIntersectionPolyDataFilter de VTK 7, voir si de base il propose les services attendus (Inner, ...).
 
+Version 8.8.2 : 26/06/25
+===============
+
+Actualisation CMakePresets.json pour CI conteneurs.
+
+
 Version 8.8.1 : 18/04/25
 ===============
 
