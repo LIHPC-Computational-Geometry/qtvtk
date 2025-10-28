@@ -1,5 +1,23 @@
 A FAIRE : tester le vtkIntersectionPolyDataFilter de VTK 7, voir si de base il propose les services attendus (Inner, ...).
 
+Version 8.8.3 : 24/10/25
+===============
+
+Portage Qt 6.10.0 / VTK 9.2.5.
+
+Le portage semble OK en 9.5.2 mais n'est pas validé avec Qt 6.10.0 car la fenête graphique est très souvent noire. Elle semble
+bien fonctionner quand elle marche => probable problème de paramétrage.
+Bon fonctionnement avec Qt v 6.6.1.
+
+Suppression du code VTK 5.
+
+
+Version 8.8.3 : 24/10/25
+===============
+
+Portage Qt 6.10.0 / VTK 9.5.2.
+
+
 Version 8.8.2 : 26/06/25
 ===============
 
