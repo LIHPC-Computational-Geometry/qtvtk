@@ -66,12 +66,7 @@
  * La simple réduction par homothétie du maillage suffit à rendre ce filtre
  * opérant ...
  */
-#ifndef VTK_5
-class vtkECMIntersectionPolyDataFilter :
-#else	// VTK_5
-class VTK_GRAPHICS_EXPORT vtkECMIntersectionPolyDataFilter :
-#endif	// VTK_5
-													public vtkPolyDataAlgorithm
+class vtkECMIntersectionPolyDataFilter : public vtkPolyDataAlgorithm
 {
 public:
 

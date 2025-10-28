@@ -10,6 +10,9 @@
 #include <QtUtil/QtCoordinatesDialog.h>
 #include <VtkContrib/vtkTrihedron.h>
 #include <VtkContrib/vtkTrihedronCommand.h>
+#ifndef VTK_WIDGET
+#include <vtkGenericOpenGLRenderWindow.h>
+#endif  // VTK_WIDGET
 
 #include <QApplication>
 #include <QInputDialog>
@@ -48,8 +51,12 @@ void QtViewPointWindow::createGui ( )
 	_graphicWindow->setAttribute (Qt::WA_TranslucentBackground, true);	// Bonne gestion transparence
 	setCentralWidget (_graphicWindow);
 	_renderer		= vtkRenderer::New ( );
+#ifndef VTK_WIDGET
+	_renderWindow	= vtkGenericOpenGLRenderWindow::New ( );
+#else  // VTK_WIDGET
 	_renderWindow	= vtkRenderWindow::New ( );
 	_renderWindow->Render ( );				// Pour bonne gestion transparence
+#endif  // VTK_WIDGET
 	_renderWindow->SetAlphaBitPlanes (1);	// Bonne gestion transparence
 	_renderWindow->SetMultiSamples (0);		// Bonne gestion transparence
 	_renderer->SetUseDepthPeeling (true);	// Bonne gestion transparence
@@ -70,8 +77,8 @@ void QtViewPointWindow::createGui ( )
 	_renderWindow->AddRenderer (trihedronRenderer);
 	_graphicWindow->SetRenderWindow (_renderWindow);
 	vtkInteractorStyleSwitch*	interactorStyle	= vtkInteractorStyleSwitch::New ( );
-	_graphicWindow->GetInteractor ( )->SetInteractorStyle (interactorStyle);
-	_graphicWindow->GetInteractor ( )->SetRenderWindow (_renderWindow);
+	_graphicWindow->getInteractor ( )->SetInteractorStyle (interactorStyle);
+	_graphicWindow->getInteractor ( )->SetRenderWindow (_renderWindow);
 	_graphicWindow->setMinimumSize (800, 600);
 	_graphicWindow->resize (800, 600);
 }	// QtViewPointWindow::createGui

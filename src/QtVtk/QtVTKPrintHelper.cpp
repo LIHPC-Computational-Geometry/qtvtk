@@ -364,34 +364,10 @@ void QtVTKPrintHelper::printToFile (vtkRenderWindow& window, const string& fileN
 		}	// if (1 < magnification)
 	}	// if (0 != dpi)
 	windowToImageFilter->Update ( );
-#ifndef VTK_5
 	writer->SetInputConnection (windowToImageFilter->GetOutputPort ( ));
-#else	// VTK_5
-	writer->SetInput (windowToImageFilter->GetOutput ( ));
-#endif	// VTK_5
-	writer->SetFileName (fileName.c_str ( ));
-#ifdef VTK_5
-// On force le raffraichissement total de la fenetre. En effet, si la fenetre
-// VTK est masquee par une autre fenetre X11 la zone masquee n'est pas
-// forcement raffraichie, et la zone correspondante de l'image est alors noire.
-window.MappedOff ( );
-window.MappedOn ( );
-#endif	// VTK_5
-	window.Render ( );
-#ifdef VTK_5
-	windowToImageFilter->Modified ( );
-	windowToImageFilter->Update ( );
-#endif	// VTK_5
-	writer->Write ( );
-/*
-	windowToImageFilter->SetInput (&window);
-	windowToImageFilter->Update ( );
-	writer->SetInput (windowToImageFilter->GetOutput ( ));
 	writer->SetFileName (fileName.c_str ( ));
 	window.Render ( );
 	writer->Write ( );
-*/
-
 	writer->Delete ( );
 	windowToImageFilter->Delete ( );
 
@@ -440,24 +416,9 @@ void QtVTKPrintHelper::printToFile (vtkRenderWindow& window, const string& fileN
 
 	windowToImageFilter->SetInput (rw);
 	windowToImageFilter->Update ( );
-#ifndef VTK_5
 	writer->SetInputConnection (windowToImageFilter->GetOutputPort ( ));
-#else	// VTK_5
-	writer->SetInput (windowToImageFilter->GetOutput ( ));
-#endif	// VTK_5
 	writer->SetFileName (fileName.c_str ( ));
-#ifdef VTK_5
-// On force le raffraichissement total de la fenetre. En effet, si la fenetre
-// VTK est masquee par une autre fenetre X11 la zone masquee n'est pas
-// forcement raffraichie, et la zone correspondante de l'image est alors noire.
-rw->MappedOff ( );
-rw->MappedOn ( );
-#endif	// VTK_5
 	rw->Render ( );
-#ifdef VTK_5
-	windowToImageFilter->Modified ( );
-	windowToImageFilter->Update ( );
-#endif	// VTK_5
 	writer->Write ( );
 	writer->Delete ( );
 	windowToImageFilter->Delete ( );

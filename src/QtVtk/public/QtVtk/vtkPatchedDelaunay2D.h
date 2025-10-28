@@ -148,11 +148,7 @@ class vtkPointSet;
 #define VTK_SET_TRANSFORM_PLANE 1
 #define VTK_BEST_FITTING_PLANE 2
 
-#ifndef VTK_5
 class vtkPatchedDelaunay2D : public vtkPolyDataAlgorithm	// CP
-#else	// VTK_5
-class VTK_GRAPHICS_EXPORT vtkPatchedDelaunay2D : public vtkPolyDataAlgorithm	// CP
-#endif	// VTK_5
 {
 public:
   vtkTypeMacro(vtkPatchedDelaunay2D,vtkPolyDataAlgorithm);

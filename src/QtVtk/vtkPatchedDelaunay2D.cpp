@@ -66,11 +66,7 @@ vtkPatchedDelaunay2D::~vtkPatchedDelaunay2D()
 void vtkPatchedDelaunay2D::SetSource(vtkPolyData *input)	// CP
 {
 //  this->Superclass::SetInputData(1, input);	// CP
-#ifndef VTK_5
   this->Superclass::SetInputData(1, input);	// CP
-#else	// VTK_5
-  this->Superclass::SetInput(1, input);	// CP
-#endif	// VTK_5
 }
 
 //----------------------------------------------------------------------------

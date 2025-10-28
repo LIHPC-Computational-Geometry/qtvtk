@@ -16,7 +16,9 @@
 
 #include "vtkCellArray.h"
 #include "vtkCellData.h"
+#if VTK_MAJOR_VERSION >= 9
 #include "vtkDelaunay2D.h"
+#endif	// VTK_MAJOR_VERSION >= 9
 #include "vtkDoubleArray.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
@@ -43,7 +45,9 @@
 // CP : new code
 #include <vtkIdTypeArray.h>
 #include <set>
+#if VTK_MAJOR_VERSION < 9
 #include <QtVtk/vtkPatchedDelaunay2D.h>
+#endif	// VTK_MAJOR_VERSION < 9
 // !CP new code
 
 
@@ -859,17 +863,14 @@ vtkCellArray* vtkECMIntersectionPolyDataFilter::Impl
   transform->Translate(-center[0], -center[1], -center[2]);
 
 // CP : new code
-//  vtkSmartPointer< vtkDelaunay2D > del2D =
-//    vtkSmartPointer< vtkDelaunay2D >::New();
-  vtkSmartPointer< vtkPatchedDelaunay2D > del2D =
-    vtkSmartPointer< vtkPatchedDelaunay2D >::New();
+#if VTK_MAJOR_VERSION < 9
+vtkSmartPointer< vtkPatchedDelaunay2D > del2D = vtkSmartPointer< vtkPatchedDelaunay2D >::New();
+#else
+vtkSmartPointer< vtkDelaunay2D > del2D = vtkSmartPointer< vtkDelaunay2D >::New();
+#endif	// VTK_MAJOR_VERSION < 9
 // !CP : new code
-#ifndef VTK_5
   del2D->SetInputData (pd);
-#else	// VTK_5
-  del2D->SetInput(pd);
-#endif	// VTK_5
-  del2D->SetSource(pd);
+//  del2D->SetSource(pd);	// CP v 8.8.3
   del2D->SetTolerance(0.0);
   del2D->SetAlpha(0.0);
   del2D->SetOffset(10);
@@ -1395,17 +1396,11 @@ int vtkECMIntersectionPolyDataFilter::RequestData(vtkInformation*        vtkNotU
   // Set up new poly data for the inputs to build cells and links.
   vtkSmartPointer< vtkPolyData > mesh0 = vtkSmartPointer< vtkPolyData >::New();
   mesh0->DeepCopy(input0);
-#ifndef VTK_5
-#else	// VTK_5
-  mesh0->SetSource(NULL);
-#endif	// VTK_5
+//  mesh0->SetSource(NULL);	// CP v 8.8.3
 
   vtkSmartPointer< vtkPolyData > mesh1 = vtkSmartPointer< vtkPolyData >::New();
   mesh1->DeepCopy(input1);
-#ifndef VTK_5
-#else	// VTK_5
-  mesh1->SetSource(NULL);
-#endif	// VTK_5
+//  mesh1->SetSource(NULL);	// CP v 8.8.3
 
   // Find the triangle-triangle intersections between mesh0 and mesh1
   vtkSmartPointer< vtkOBBTree > obbTree0 = vtkSmartPointer< vtkOBBTree >::New();

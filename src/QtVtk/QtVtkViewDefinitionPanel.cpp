@@ -48,7 +48,11 @@ QtVtkViewDefinitionPanel::QtVtkViewDefinitionPanel (QWidget* parent, const strin
 	// Creation de l'ihm :
 	QVBoxLayout*	layout	= new QVBoxLayout (this);
 	layout->setSpacing (QtConfiguration::spacing);
+#ifdef QT_5
 	layout->setMargin (QtConfiguration::margin);
+#else	// QT_5
+	layout->setContentsMargins (QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin);
+#endif	// QT_5
 	layout->setSizeConstraint (QLayout::SetMinimumSize);
 
 	// Nom / Commentaire :

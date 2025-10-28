@@ -46,7 +46,11 @@ QtVtkViewDefinitionDialog::QtVtkViewDefinitionDialog (
 
 	// Creation de l'ihm :
 	QVBoxLayout*	layout	= new QVBoxLayout (this);
+#ifdef QT_5
 	layout->setMargin (QtConfiguration::margin);
+#else	// QT_5
+	layout->setContentsMargins (QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin);
+#endif	// QT_5
 	layout->setSizeConstraint (QLayout::SetMinimumSize);
 	QtGroupBox*		frame		=  new QtGroupBox (QSTR ("Paramètres de la vue"), this, "frame");
 	QVBoxLayout*	frameLayout	= new QVBoxLayout (frame);
