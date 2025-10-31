@@ -126,7 +126,7 @@ void QtVtkGraphicWidget::SetRenderWindow (vtkRenderWindow* window)	// v 8.1.1
 
 vtkRenderWindow* QtVtkGraphicWidget::GetRenderWindow ( )	// v 8.1.1
 {
-	QVTKOpenGLNativeWidget::renderWindow ( );
+	return QVTKOpenGLNativeWidget::renderWindow ( );
 }	// QtVtkGraphicWidget::GetRenderWindow
 
 #endif

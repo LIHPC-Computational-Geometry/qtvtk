@@ -1,5 +1,11 @@
 A FAIRE : tester le vtkIntersectionPolyDataFilter de VTK 7, voir si de base il propose les services attendus (Inner, ...).
 
+Version 8.8.4 : 31/10/25
+===============
+
+Correctif QtVtkGraphicWidget::GetRenderWindow ( ) en VTK >= 9.
+
+
 Version 8.8.3 : 24/10/25
 ===============
 
