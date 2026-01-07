@@ -150,7 +150,11 @@ class QtVtkTransformationPanel : public QWidget
 	 * @return			une transformation correspondant au paramétrage en cours. A détruire par l'appelant.
 	 */
 	virtual vtkTransform* getTransformation ( ) const;
-
+	
+	/**
+	 * @return			une description textuelle de la transformation.
+	 */
+	virtual IN_UTIL UTF8String getTransformationDescription ( ) const;
 
 	signals :
 

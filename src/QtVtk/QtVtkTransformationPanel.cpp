@@ -37,7 +37,7 @@ USE_ENCODING_AUTODETECTION
 // ===========================================================================
 
 
-QtVtkTransformationPanel::QtVtkTransformationPanel (QWidget* parent, const IN_UTIL UTF8String& appTitle, bool cartesian, double xoy, double xoz, double yoz, double dx, double dy, double dz)
+QtVtkTransformationPanel::QtVtkTransformationPanel (QWidget* parent, const UTF8String& appTitle, bool cartesian, double xoy, double xoz, double yoz, double dx, double dy, double dz)
 	: QWidget (parent), _appTitle (appTitle), _sphericalCheckBox (0), _contextualHelpLabel (0), _xOyAngleLabel (0), _xOzAngleLabel (0), _yOzAngleLabel (0), 
 	  _xOyAngleTextField (0), _xOzAngleTextField (0), _yOzAngleTextField (0), _translationPanel (0)
 {
@@ -325,6 +325,29 @@ cout << "IN (" << ptIn [0] << ", " << ptIn [1] << ", " << ptIn [2] << ") OUT (" 
 
 	return transformation;
 }	// QtVtkTransformationPanel::getTransformation
+
+
+UTF8String QtVtkTransformationPanel::getTransformationDescription ( ) const
+{
+	UTF8String	description (charset);
+	
+	const bool	spherical	= !isCartesianCoordinateSystem ( );
+	double	dx	= 0., dy	= 0., dz	= 0.;
+	getTranslation (dx, dy, dz);
+	if (true == spherical)
+	{
+		description << "Transformation en repère sphérique. Phi = " << getPhiAngle ( ) << " degrés, thêta = " << getThetaAngle ( ) << " degrés, oméga = " 
+		            << getOmegaAngle ( ) << " degrés, translation de (" << dx << ", " << dy << ", " << dz << ")";
+	}	// if (true == spherical)
+	else
+	{
+		description << "Transformation en repère cartésien. Rotations autour de Oy = " << getXOZAngle ( ) << " degrés, autour de Ox = " << getYOZAngle ( ) 
+		            << " degrés, autour de Oz = " << getXOYAngle ( ) << " degrés, translation de (" << dx << ", " << dy << ", " << dz << ")";
+	}	// else if (true == spherical)
+	
+	
+	return description;
+}	// QtVtkTransformationPanel::getTransformationDescription
 
 
 void QtVtkTransformationPanel::transformationModifiedCallback ( )
