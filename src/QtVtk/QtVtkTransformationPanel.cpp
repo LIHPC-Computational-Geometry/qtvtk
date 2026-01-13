@@ -31,15 +31,12 @@ static const	Charset	charset ("àéèùô");
 USE_ENCODING_AUTODETECTION
 
 
-
 // ===========================================================================
-//                         QtVtkTransformationPanel
+//                    QtVtkExtrinsicTransformationPanel
 // ===========================================================================
 
-
-QtVtkTransformationPanel::QtVtkTransformationPanel (QWidget* parent, const UTF8String& appTitle, bool cartesian, double xoy, double xoz, double yoz, double dx, double dy, double dz)
-	: QWidget (parent), _appTitle (appTitle), _sphericalCheckBox (0), _contextualHelpLabel (0), _xOyAngleLabel (0), _xOzAngleLabel (0), _yOzAngleLabel (0), 
-	  _xOyAngleTextField (0), _xOzAngleTextField (0), _yOzAngleTextField (0), _translationPanel (0)
+QtVtkExtrinsicTransformationPanel::QtVtkExtrinsicTransformationPanel (QWidget* parent, const UTF8String& appTitle, double xoy, double xoz, double yoz, bool translationFirst, double dx, double dy, double dz)
+	: QWidget (parent), _appTitle (appTitle), _translationFirstCheckBox (0), _xOyAngleTextField (0), _xOzAngleTextField (0), _yOzAngleTextField (0), _translationPanel (0)
 {
 	QtAutoWaitingCursor		waitingCursor (true);
 
@@ -53,19 +50,14 @@ QtVtkTransformationPanel::QtVtkTransformationPanel (QWidget* parent, const UTF8S
 #endif	// QT_5
 	layout->setSizeConstraint (QLayout::SetMinimumSize);
 
-	// Système de coordonnées utilisé :
-	_sphericalCheckBox	= new QCheckBox (QSTR ("Repère sphérique"), this);
-	connect (_sphericalCheckBox, SIGNAL(clicked ( )), this, SLOT(transformationModifiedCallback ( )));
-	QString	tip (QSTR ("Coché, la transformation est effectuée en repère sphérique via les angles "));
-	tip += QtStringHelper::phiMin ( ) + ", " + QtStringHelper::thetaMaj ( )+ " et " + QtStringHelper::omegaMaj ( );
-	_sphericalCheckBox->setChecked (!cartesian);
-	_sphericalCheckBox->setToolTip (tip);
-	layout->addWidget (_sphericalCheckBox);
+	// Translation en premier ? :
+	_translationFirstCheckBox	= new QCheckBox (QSTR ("Translation en premier"), this);
+	connect (_translationFirstCheckBox, SIGNAL(clicked ( )), this, SLOT(transformationModifiedCallback ( )));
+	QString	tip (QSTR ("Coché, la translation est effectuée avant les rotations."));
+	_translationFirstCheckBox->setChecked (translationFirst);
+	_translationFirstCheckBox->setToolTip (tip);
+	layout->addWidget (_translationFirstCheckBox);
 	
-	// et l'aide associée :
-	_contextualHelpLabel	= new QLabel ("Aide contextuelle", this);
-	layout->addWidget (_contextualHelpLabel);
-
 	// Les rotations :
 	QtGroupBox*		xOyGroupBox	= new QtGroupBox (this);
 	QHBoxLayout*	qhLayout	= new QHBoxLayout (xOyGroupBox);
@@ -73,8 +65,8 @@ QtVtkTransformationPanel::QtVtkTransformationPanel (QWidget* parent, const UTF8S
 	xOyGroupBox->setMargin (QtConfiguration::margin);
 	xOyGroupBox->setSpacing (QtConfiguration::spacing);
 	layout->addWidget (xOyGroupBox);
-	_xOyAngleLabel	= new QLabel (QSTR ("Angle de rotation dans le plan xOy:"), xOyGroupBox);
-	qhLayout->addWidget (_xOyAngleLabel);
+	QLabel*	angleLabel	= new QLabel (QSTR ("Angle de rotation dans le plan xOy:"), xOyGroupBox);
+	qhLayout->addWidget (angleLabel);
 	_xOyAngleTextField	= new QtTextField (QString::number (xoy), xOyGroupBox);
 	_xOyAngleTextField->setValidator (new QDoubleValidator (-180., 180., 0, _xOyAngleTextField));
 	qhLayout->addWidget (_xOyAngleTextField);
@@ -89,8 +81,8 @@ QtVtkTransformationPanel::QtVtkTransformationPanel (QWidget* parent, const UTF8S
 	xOzGroupBox->setMargin (QtConfiguration::margin);
 	xOzGroupBox->setSpacing (QtConfiguration::spacing);
 	layout->addWidget (xOzGroupBox);
-	_xOzAngleLabel	= new QLabel (QSTR ("Angle de rotation dans le plan xOz:"), xOzGroupBox);
-	qhLayout->addWidget (_xOzAngleLabel);
+	angleLabel	= new QLabel (QSTR ("Angle de rotation dans le plan xOz:"), xOzGroupBox);
+	qhLayout->addWidget (angleLabel);
 	_xOzAngleTextField	= 	new QtTextField (QString::number (xoz), xOzGroupBox);
 	_xOzAngleTextField->setValidator (new QDoubleValidator (-180., 180., 0, _xOzAngleTextField));
 	qhLayout->addWidget (_xOzAngleTextField);
@@ -105,8 +97,8 @@ QtVtkTransformationPanel::QtVtkTransformationPanel (QWidget* parent, const UTF8S
 	yOzGroupBox->setMargin (QtConfiguration::margin);
 	yOzGroupBox->setSpacing (QtConfiguration::spacing);
 	layout->addWidget (yOzGroupBox);
-	_yOzAngleLabel	= new QLabel (QSTR ("Angle de rotation dans le plan yOz:"), yOzGroupBox);
-	qhLayout->addWidget (_yOzAngleLabel);
+	angleLabel	= new QLabel (QSTR ("Angle de rotation dans le plan yOz:"), yOzGroupBox);
+	qhLayout->addWidget (angleLabel);
 	_yOzAngleTextField	= 	new QtTextField (QString::number (yoz), yOzGroupBox);
 	_yOzAngleTextField->setValidator (new QDoubleValidator (-180., 180., 0, _yOzAngleTextField));
 	qhLayout->addWidget (_yOzAngleTextField);
@@ -121,14 +113,491 @@ QtVtkTransformationPanel::QtVtkTransformationPanel (QWidget* parent, const UTF8S
 	connect (_translationPanel->getYTextField ( ), SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
 	connect (_translationPanel->getZTextField ( ), SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
 	layout->addWidget (_translationPanel);
-	_translationPanel->setToolTip (QSTR ("Zone de saisie de la translation post-rotations."));
+	_translationPanel->setToolTip (QSTR ("Zone de saisie de la translation pré ou post-rotations."));
 
 	layout->activate ( );
 	setMinimumSize (layout->sizeHint ( ));
+}	// QtVtkExtrinsicTransformationPanel::QtVtkExtrinsicTransformationPanel
 
-	// On met les bons labels et tooltips :
+
+QtVtkExtrinsicTransformationPanel::QtVtkExtrinsicTransformationPanel (const QtVtkExtrinsicTransformationPanel&)
+{
+	assert (0 && "QtVtkExtrinsicTransformationPanel copy constructor is forbidden.");
+}	// QtVtkExtrinsicTransformationPanel::QtVtkExtrinsicTransformationPanel (const QtVtkExtrinsicTransformationPanel&)
+
+
+QtVtkExtrinsicTransformationPanel& QtVtkExtrinsicTransformationPanel::operator = (const QtVtkExtrinsicTransformationPanel&)
+{
+	assert (0 && "QtVtkExtrinsicTransformationPanel assignment operator is forbidden.");
+	return *this;
+}	// QtVtkExtrinsicTransformationPanel::operator =
+
+
+QtVtkExtrinsicTransformationPanel::~QtVtkExtrinsicTransformationPanel ( )
+{
+}	// QtVtkExtrinsicTransformationPanel::~QtVtkExtrinsicTransformationPanel
+
+
+void QtVtkExtrinsicTransformationPanel::setXOYAngle (double angle)
+{
+	assert ((0 != _xOyAngleTextField) && "QtVtkExtrinsicTransformationPanel::setXOYAngle : null angle text field.");
+	_xOyAngleTextField->setText (QString::number (angle));
+}	// QtVtkExtrinsicTransformationPanel::setXOYAngle
+
+
+double QtVtkExtrinsicTransformationPanel::getXOYAngle ( ) const
+{
+	assert ((0 != _xOyAngleTextField) && "QtVtkExtrinsicTransformationPanel::getXOYAngle : null angle text field.");
+	bool	ok		= true;
+	double	value	= _xOyAngleTextField->text ( ).toDouble (&ok);
+
+	if (false == ok)
+	{
+		UTF8String	errorMsg (charset);
+		errorMsg << _appTitle << " : valeur invalide de l'angle xOy (" << _xOyAngleTextField->text ( ).toStdString ( ) << ")";
+		throw Exception (errorMsg);
+	}	// if (false == ok)
+
+	return value;
+}	// QtVtkExtrinsicTransformationPanel::getXOYAngle
+
+
+void QtVtkExtrinsicTransformationPanel::setXOZAngle (double angle)
+{
+	assert ((0 != _xOzAngleTextField) && "QtVtkExtrinsicTransformationPanel::setXOZAngle : null angle text field.");
+	_xOzAngleTextField->setText (QString::number (angle));
+}	// QtVtkExtrinsicTransformationPanel::setXOZAngle
+
+
+double QtVtkExtrinsicTransformationPanel::getXOZAngle ( ) const
+{
+	assert ((0 != _xOzAngleTextField) && "QtVtkExtrinsicTransformationPanel::getXOZAngle : null sectionRaangledius text field.");
+	bool	ok		= true;
+	double	value	= _xOzAngleTextField->text ( ).toDouble (&ok);
+
+	if (false == ok)
+	{
+		UTF8String	errorMsg (charset);
+		errorMsg << _appTitle << " : valeur invalide de l'angle xOz (" << _xOzAngleTextField->text ( ).toStdString ( ) << ")";
+		throw Exception (errorMsg);
+	}	// if (false == ok)
+
+	return value;
+}	// QtVtkExtrinsicTransformationPanel::getXOZAngle
+
+
+void QtVtkExtrinsicTransformationPanel::setYOZAngle (double angle)
+{
+	assert ((0 != _yOzAngleTextField) && "QtVtkExtrinsicTransformationPanel::setYOZAngle : null angle text field.");
+	_yOzAngleTextField->setText (QString::number (angle));
+}	// QtVtkExtrinsicTransformationPanel::setYOZAngle
+
+
+double QtVtkExtrinsicTransformationPanel::getYOZAngle ( ) const
+{
+	assert ((0 != _yOzAngleTextField) && "QtVtkExtrinsicTransformationPanel::getYOZAngle : null angle text field.");
+	bool	ok		= true;
+	double	value	= _yOzAngleTextField->text ( ).toDouble (&ok);
+
+	if (false == ok)
+	{
+		UTF8String	errorMsg (charset);
+		errorMsg << _appTitle << " : valeur invalide de l'angle yOz (" << _yOzAngleTextField->text ( ).toStdString ( ) << ")";
+		throw Exception (errorMsg);
+	}	// if (false == ok)
+
+	return value;
+}	// QtVtkExtrinsicTransformationPanel::getYOZAngle
+
+
+void QtVtkExtrinsicTransformationPanel::setTranslationFirst (bool translationFirst)
+{
+	assert ((0 != _translationFirstCheckBox) && "QtVtkExtrinsicTransformationPanel::setTranslationFirst : null coordinate system checkbox.");
+	_translationFirstCheckBox->setChecked (translationFirst);
+	transformationModifiedCallback ( ) ;
+}	// QtVtkExtrinsicTransformationPanel::setTranslationFirst
+
+
+bool QtVtkExtrinsicTransformationPanel::isTranslationFirst ( ) const
+{
+	assert ((0 != _translationFirstCheckBox) && "QtVtkExtrinsicTransformationPanel::isTranslationFirst : null coordinate system checkbox.");
+
+	return !_translationFirstCheckBox->isChecked ( );
+}	// QtVtkExtrinsicTransformationPanel::isTranslationFirst
+
+
+void QtVtkExtrinsicTransformationPanel::setTranslation (double dx, double dy, double dz)
+{
+	assert ((0 != _translationPanel) && "QtVtkExtrinsicTransformationPanel::setTranslation : null translation panel.");
+	_translationPanel->setX (dx);
+	_translationPanel->setY (dy);
+	_translationPanel->setZ (dz);
+}	// QtVtkExtrinsicTransformationPanel::setTranslation
+
+
+void QtVtkExtrinsicTransformationPanel::getTranslation (double& dx, double& dy, double& dz) const
+{
+	assert ((0 != _translationPanel) && "QtVtkExtrinsicTransformationPanel::getTranslation : null translation panel.");
+	dx	= _translationPanel->getX ( );
+	dy	= _translationPanel->getY ( );
+	dz	= _translationPanel->getZ ( );
+}	// QtVtkExtrinsicTransformationPanel::getTranslation
+
+
+vtkTransform* QtVtkExtrinsicTransformationPanel::getTransformation ( ) const
+{
+	vtkTransform*	transformation	= vtkTransform::New ( );	// PreMultiply
+	assert (0 != transformation);
+	
+	const bool	translationFirst	= isTranslationFirst ( );
+	double	dx	= 0., dy	= 0., dz	= 0.;
+	getTranslation (dx, dy, dz);
+	if (false == translationFirst)
+		transformation->Translate (dx, dy, dz);
+	transformation->RotateY (getXOZAngle ( ));
+	transformation->RotateX (getYOZAngle ( ));
+	transformation->RotateZ (getXOYAngle ( ));
+	if (true == translationFirst)
+		transformation->Translate (dx, dy, dz);
+
+	return transformation;
+}	// QtVtkExtrinsicTransformationPanel::getTransformation
+
+
+UTF8String QtVtkExtrinsicTransformationPanel::getTransformationDescription ( ) const
+{
+	UTF8String	description (charset);
+	
+	const bool	translationFirst	= isTranslationFirst ( );
+	double	dx	= 0., dy	= 0., dz	= 0.;
+	getTranslation (dx, dy, dz);
+	if (true == translationFirst)
+	{
+		description << "Transformation extrinsèque. Translation de (" << dx << ", " << dy << ", " << dz 
+		            << ") suivie de rotations autour de Oy = " << getXOZAngle ( ) << " degrés, autour de Ox = " << getYOZAngle ( ) 
+		            << " degrés, autour de Oz = " << getXOYAngle ( ) << " degrés.";
+	}	// if (true == translationFirst)
+	else
+	{
+		description << "Transformation extrinsèque. Rotations autour de Oy = " << getXOZAngle ( ) << " degrés, autour de Ox = " << getYOZAngle ( ) 
+		            << " degrés, autour de Oz = " << getXOYAngle ( ) << " degrés, suivie d'une translation de (" << dx << ", " << dy << ", " << dz << ")";
+	}
+	
+	return description;
+}	// QtVtkExtrinsicTransformationPanel::getTransformationDescription
+
+
+void QtVtkExtrinsicTransformationPanel::transformationModifiedCallback ( )
+{
+	emit (transformationChanged ( ));
+}	// QtVtkExtrinsicTransformationPanel::transformationModifiedCallback
+
+
+// ===========================================================================
+//                    QtVtkIntrinsicTransformationPanel
+// ===========================================================================
+
+QtVtkIntrinsicTransformationPanel::QtVtkIntrinsicTransformationPanel (QWidget* parent, const UTF8String& appTitle, double x, double y, double z, double phi, double theta, double omega)
+	: QWidget (parent), _appTitle (appTitle), _centerPanel (0), _phiAngleTextField (0), _thetaAngleTextField (0), _omegaAngleTextField (0)
+{
+	QtAutoWaitingCursor		waitingCursor (true);
+
+	// Creation de l'ihm :
+	QVBoxLayout*	layout	= new QVBoxLayout (this);
+	layout->setSpacing (QtConfiguration::spacing);
+#ifdef QT_5
+	layout->setMargin (QtConfiguration::margin);
+#else	// QT_5
+	layout->setContentsMargins (QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin);
+#endif	// QT_5
+	layout->setSizeConstraint (QLayout::SetMinimumSize);
+
+	// La centre :
+	_centerPanel	= new Qt3DDataPanel (this, "Centre :", true, "x : ", "y : ", "z : ", x, -DBL_MAX, DBL_MAX, y, -DBL_MAX, DBL_MAX, z, -DBL_MAX, DBL_MAX, false);
+	connect (_centerPanel->getXTextField ( ), SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
+	connect (_centerPanel->getYTextField ( ), SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
+	connect (_centerPanel->getZTextField ( ), SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
+	layout->addWidget (_centerPanel);
+	_centerPanel->setToolTip (QSTR ("Zone de saisie duu centre de la transformation intrinsèque."));
+
+	// Les rotations :
+	QtGroupBox*		phiGroupBox	= new QtGroupBox (this);
+	QHBoxLayout*	qhLayout	= new QHBoxLayout (phiGroupBox);
+	phiGroupBox->setLayout (qhLayout);
+	phiGroupBox->setMargin (QtConfiguration::margin);
+	phiGroupBox->setSpacing (QtConfiguration::spacing);
+	layout->addWidget (phiGroupBox);
+	QLabel*	angleLabel	= new QLabel (QSTR ("Angle ") + QtStringHelper::phiMin ( ), phiGroupBox);
+	qhLayout->addWidget (angleLabel);
+	_phiAngleTextField	= new QtTextField (QString::number (phi), phiGroupBox);
+	_phiAngleTextField->setValidator (new QDoubleValidator (-180., 180., 0, _phiAngleTextField));
+	qhLayout->addWidget (_phiAngleTextField);
+	connect (_phiAngleTextField, SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
+	_phiAngleTextField->setFixedSize (_phiAngleTextField->sizeHint ( ));
+	qhLayout->addStretch (200);
+	_phiAngleTextField->setToolTip (QSTR ("Zone de saisie de l'angle de rotation ") + QtStringHelper::phiMin ( ) + QSTR (" autour de l'axe Oy dans le repère local."));
+	angleLabel->setToolTip (QSTR ("Zone de saisie de l'angle de rotation ") + QtStringHelper::phiMin ( ) + QSTR (" autour de l'axe Oy dans le repère local."));
+	
+	QtGroupBox*		thetaGroupBox	= new QtGroupBox (this);
+	qhLayout	= new QHBoxLayout (thetaGroupBox);
+	thetaGroupBox->setLayout (qhLayout);
+	thetaGroupBox->setMargin (QtConfiguration::margin);
+	thetaGroupBox->setSpacing (QtConfiguration::spacing);
+	layout->addWidget (thetaGroupBox);
+	angleLabel	= new QLabel (QSTR ("Angle ") + QtStringHelper::thetaMaj ( ), thetaGroupBox);
+	qhLayout->addWidget (angleLabel);
+	_thetaAngleTextField	= new QtTextField (QString::number (theta), thetaGroupBox);
+	_thetaAngleTextField->setValidator (new QDoubleValidator (-180., 180., 0, _thetaAngleTextField));
+	qhLayout->addWidget (_thetaAngleTextField);
+	connect (_thetaAngleTextField, SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
+	_thetaAngleTextField->setFixedSize (_thetaAngleTextField->sizeHint ( ));
+	qhLayout->addStretch (200);
+	_thetaAngleTextField->setToolTip (QSTR ("Zone de saisie de l'angle de rotation ") + QtStringHelper::thetaMaj ( ) + QSTR (" autour de l'axe Oz dans le repère local."));
+	angleLabel->setToolTip (QSTR ("Zone de saisie de l'angle de rotation ") + QtStringHelper::thetaMaj ( ) + QSTR (" autour de l'axe Oz dans le repère local."));
+	
+	QtGroupBox*		omegaGroupBox	= new QtGroupBox (this);
+	qhLayout	= new QHBoxLayout (omegaGroupBox);
+	omegaGroupBox->setLayout (qhLayout);
+	omegaGroupBox->setMargin (QtConfiguration::margin);
+	omegaGroupBox->setSpacing (QtConfiguration::spacing);
+	layout->addWidget (omegaGroupBox);
+	angleLabel	= new QLabel (QSTR ("Angle ") + QtStringHelper::omegaMin ( ), omegaGroupBox);
+	qhLayout->addWidget (angleLabel);
+	_omegaAngleTextField	= new QtTextField (QString::number (omega), omegaGroupBox);
+	_omegaAngleTextField->setValidator (new QDoubleValidator (-180., 180., 0, _omegaAngleTextField));
+	qhLayout->addWidget (_omegaAngleTextField);
+	connect (_omegaAngleTextField, SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
+	_omegaAngleTextField->setFixedSize (_omegaAngleTextField->sizeHint ( ));
+	qhLayout->addStretch (200);
+	_omegaAngleTextField->setToolTip (QSTR ("Zone de saisie de l'angle de rotation ") + QtStringHelper::omegaMin ( ) + QSTR (" autour de l'axe Ox dans le repère local."));
+	angleLabel->setToolTip (QSTR ("Zone de saisie de l'angle de rotation ") + QtStringHelper::omegaMin ( ) + QSTR (" autour de l'axe Ox dans le repère local."));
+
+	layout->activate ( );
+	setMinimumSize (layout->sizeHint ( ));
+}	// QtVtkIntrinsicTransformationPanel::QtVtkIntrinsicTransformationPanel
+
+
+QtVtkIntrinsicTransformationPanel::QtVtkIntrinsicTransformationPanel (const QtVtkIntrinsicTransformationPanel&)
+{
+	assert (0 && "QtVtkIntrinsicTransformationPanel copy constructor is forbidden.");
+}	// QtVtkIntrinsicTransformationPanel::QtVtkIntrinsicTransformationPanel (const QtVtkIntrinsicTransformationPanel&)
+
+
+QtVtkIntrinsicTransformationPanel& QtVtkIntrinsicTransformationPanel::operator = (const QtVtkIntrinsicTransformationPanel&)
+{
+	assert (0 && "QtVtkIntrinsicTransformationPanel assignment operator is forbidden.");
+	return *this;
+}	// QtVtkIntrinsicTransformationPanel::operator =
+
+
+QtVtkIntrinsicTransformationPanel::~QtVtkIntrinsicTransformationPanel ( )
+{
+}	// QtVtkIntrinsicTransformationPanel::~QtVtkIntrinsicTransformationPanel
+
+
+void QtVtkIntrinsicTransformationPanel::setCenter (double x, double y, double z)
+{
+	assert ((0 != _centerPanel) && "QtVtkIntrinsicTransformationPanel::setTranslation : null translation panel.");
+	_centerPanel->setX (x);
+	_centerPanel->setY (y);
+	_centerPanel->setZ (z);
+}	// QtVtkIntrinsicTransformationPanel::setCenter
+
+
+void QtVtkIntrinsicTransformationPanel::getCenter (double& x, double& y, double& z) const
+{
+	assert ((0 != _centerPanel) && "QtVtkIntrinsicTransformationPanel::getCenter : null translation panel.");
+	x	= _centerPanel->getX ( );
+	y	= _centerPanel->getY ( );
+	z	= _centerPanel->getZ ( );
+}	// QtVtkIntrinsicTransformationPanel::getCenter
+
+
+void QtVtkIntrinsicTransformationPanel::setPhiAngle (double angle)
+{
+	assert ((0 != _phiAngleTextField) && "QtVtkIntrinsicTransformationPanel::setPhiAngle : null angle text field.");
+	_phiAngleTextField->setText (QString::number (angle));
+}	// QtVtkIntrinsicTransformationPanel::setPhiAngle
+
+
+double QtVtkIntrinsicTransformationPanel::getPhiAngle ( ) const
+{
+	assert ((0 != _phiAngleTextField) && "QtVtkIntrinsicTransformationPanel::getPhiAngle : null angle text field.");
+	bool	ok		= true;
+	double	value	= _phiAngleTextField->text ( ).toDouble (&ok);
+
+	if (false == ok)
+	{
+		UTF8String	errorMsg (charset);
+		errorMsg << _appTitle << " : valeur invalide de l'angle phi (" << _phiAngleTextField->text ( ).toStdString ( ) << ")";
+		throw Exception (errorMsg);
+	}	// if (false == ok)
+
+	return value;
+}	// QtVtkIntrinsicTransformationPanel::getPhiAngle
+
+
+void QtVtkIntrinsicTransformationPanel::setThetaAngle (double angle)
+{
+	assert ((0 != _thetaAngleTextField) && "QtVtkIntrinsicTransformationPanel::setThetaAngle : null angle text field.");
+	_thetaAngleTextField->setText (QString::number (angle));
+}	// QtVtkIntrinsicTransformationPanel::setThetaAngle
+
+
+double QtVtkIntrinsicTransformationPanel::getThetaAngle ( ) const
+{
+	assert ((0 != _thetaAngleTextField) && "QtVtkIntrinsicTransformationPanel::getThetaAngle : null sectionRaangledius text field.");
+	bool	ok		= true;
+	double	value	= _thetaAngleTextField->text ( ).toDouble (&ok);
+
+	if (false == ok)
+	{
+		UTF8String	errorMsg (charset);
+		errorMsg << _appTitle << " : valeur invalide de l'angle theta (" << _thetaAngleTextField->text ( ).toStdString ( ) << ")";
+		throw Exception (errorMsg);
+	}	// if (false == ok)
+
+	return value;
+}	// QtVtkIntrinsicTransformationPanel::getThetaAngle
+
+
+void QtVtkIntrinsicTransformationPanel::setOmegaAngle (double angle)
+{
+	assert ((0 != _omegaAngleTextField) && "QtVtkIntrinsicTransformationPanel::setOmegaAngle : null angle text field.");
+	_omegaAngleTextField->setText (QString::number (angle));
+}	// QtVtkIntrinsicTransformationPanel::setOmegaAngle
+
+
+double QtVtkIntrinsicTransformationPanel::getOmegaAngle ( ) const
+{
+	assert ((0 != _omegaAngleTextField) && "QtVtkIntrinsicTransformationPanel::getOmegaAngle : null angle text field.");
+	bool	ok		= true;
+	double	value	= _omegaAngleTextField->text ( ).toDouble (&ok);
+
+	if (false == ok)
+	{
+		UTF8String	errorMsg (charset);
+		errorMsg << _appTitle << " : valeur invalide de l'angle omega (" << _omegaAngleTextField->text ( ).toStdString ( ) << ")";
+		throw Exception (errorMsg);
+	}	// if (false == ok)
+
+	return value;
+}	// QtVtkIntrinsicTransformationPanel::getOmegaAngle
+
+
+vtkTransform* QtVtkIntrinsicTransformationPanel::getTransformation ( ) const
+{
+	vtkTransform*	transformation	= vtkTransform::New ( );	// PreMultiply
+	assert (0 != transformation);
+	
+	double	x	= 0., y	= 0., z	= 0.;
+	getCenter (x, y, z);
+	transformation->Translate (x, y, z);	// Modification extrinsèque pour centrage des rotations intrinsèques
+	transformation->PostMultiply ( );
+	// RotateY(phi) → RotateZ(theta) → RotateX(omega) : chaque rotation s’applique dans le repère local courant, 
+	// méthode standard pour les angles de Tait-Bryan intrinsèques (ZYX) en robotique/aéronautique. Dixit mistral.ai.
+	// Pour ce il faut inverser l'ordre des rotations par rapport à la même transformation mais à repère constant.
+	transformation->RotateX (getOmegaAngle ( ));
+	transformation->RotateZ (getThetaAngle ( ));
+	transformation->RotateY (getPhiAngle ( ));
+	transformation->Translate (-x, -y, -z);	// Annulation centrage des rotations intrinsèques
+
+	return transformation;
+}	// QtVtkIntrinsicTransformationPanel::getTransformation
+
+
+UTF8String QtVtkIntrinsicTransformationPanel::getTransformationDescription ( ) const
+{
+	UTF8String	description (charset);
+
+	double	x	= 0., y	= 0., z	= 0.;
+	getCenter (x, y, z);
+	description << "Transformation intrinsèque. Phi = " << getPhiAngle ( ) << " degrés, thêta = " << getThetaAngle ( ) << " degrés, oméga = " 
+		        << getOmegaAngle ( ) << " degrés, centrée en (" << x << ", " << y << ", " << z << ")";
+	
+	return description;
+}	// QtVtkIntrinsicTransformationPanel::getTransformationDescription
+
+
+void QtVtkIntrinsicTransformationPanel::transformationModifiedCallback ( )
+{
+	emit (transformationChanged ( ));
+}	// QtVtkIntrinsicTransformationPanel::transformationModifiedCallback
+
+
+// ===========================================================================
+//                         QtVtkTransformationPanel
+// ===========================================================================
+
+
+QtVtkTransformationPanel::QtVtkTransformationPanel (QWidget* parent, const UTF8String& appTitle, double xoy, double xoz, double yoz, bool translationFirst, double dx, double dy, double dz)
+	: QWidget (parent), _appTitle (appTitle), _extrinsicCheckBox (0), _contextualHelpLabel (0), _imageLabel (0),_extrinsicPanel (0), _intrinsicPanel (0)
+{
+	createGui ( );
+	assert (0 != _extrinsicPanel);
+	assert (0 != _intrinsicPanel);
+	
+	// On affiche le bon panneau :
+	_extrinsicCheckBox->setChecked (true);
+	_extrinsicPanel->setXOYAngle (xoy);
+	_extrinsicPanel->setXOZAngle (xoz);
+	_extrinsicPanel->setYOZAngle (yoz);
+	_extrinsicPanel->setTranslationFirst (translationFirst);
+	_extrinsicPanel->setTranslation (dx, dy, dz);
 	transformationModifiedCallback ( );
+	layout ( )->activate ( );
 }	// QtVtkTransformationPanel::QtVtkTransformationPanel
+
+
+QtVtkTransformationPanel::QtVtkTransformationPanel (QWidget* parent, const UTF8String& appTitle, double x, double y, double z, double phi, double theta, double omega)
+	: QWidget (parent), _appTitle (appTitle), _extrinsicCheckBox (0), _contextualHelpLabel (0), _imageLabel (0),_extrinsicPanel (0), _intrinsicPanel (0)
+{
+	createGui ( );
+	assert (0 != _extrinsicPanel);
+	assert (0 != _intrinsicPanel);
+
+	// On affiche le bon panneau :
+	_extrinsicCheckBox->setChecked (false);
+	_intrinsicPanel->setCenter (x, y, z);
+	_intrinsicPanel->setPhiAngle (phi);
+	_intrinsicPanel->setThetaAngle (theta);
+	_intrinsicPanel->setOmegaAngle (omega);
+	transformationModifiedCallback ( );
+	layout ( )->activate ( );
+}	// QtVtkTransformationPanel::QtVtkTransformationPanel
+
+
+void QtVtkTransformationPanel::createGui ( )
+{
+	QtAutoWaitingCursor		waitingCursor (true);
+
+	// Creation de l'ihm :
+	QHBoxLayout*	mainLayout	= new QHBoxLayout (this);
+	QVBoxLayout*	layout		= new QVBoxLayout ( );
+	mainLayout->addLayout (layout);
+	layout->setSpacing (QtConfiguration::spacing);
+#ifdef QT_5
+	layout->setMargin (QtConfiguration::margin);
+#else	// QT_5
+	layout->setContentsMargins (QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin);
+#endif	// QT_5
+	layout->setSizeConstraint (QLayout::SetMinimumSize);
+
+	// L'aide associée :
+	_contextualHelpLabel	= new QLabel ("Aide contextuelle", this);
+	layout->addWidget (_contextualHelpLabel);
+
+	// Type de transformation :
+	_extrinsicCheckBox	= new QCheckBox (QSTR ("Transformation extrinsèque"), this);
+	connect (_extrinsicCheckBox, SIGNAL(clicked ( )), this, SLOT(transformationTypeModifiedCallback ( )));
+	QString	tip (QSTR ("Coché, la transformation est extrinsèque, c.a.d. dans le repère global, les axes ne suivent pas les rotations."));
+	_extrinsicCheckBox->setToolTip (tip);
+	layout->addWidget (_extrinsicCheckBox);
+
+	// La représentation de la transformation :
+	_imageLabel	= new QLabel ("", this);
+	mainLayout->addWidget (_imageLabel);
+}	// QtVtkTransformationPanel::createGui
 
 
 QtVtkTransformationPanel::QtVtkTransformationPanel (const QtVtkTransformationPanel&)
@@ -149,272 +618,81 @@ QtVtkTransformationPanel::~QtVtkTransformationPanel ( )
 }	// QtVtkTransformationPanel::~QtVtkTransformationPanel
 
 
-void QtVtkTransformationPanel::setCartesianCoordinateSystem (bool cartesian)
+void QtVtkTransformationPanel::setExtrinsic (bool extrinsic)
 {
-	assert ((0 != _sphericalCheckBox) && "QtVtkTransformationPanel::setCartesianCoordinateSystem : null coordinate system checkbox.");
-	_sphericalCheckBox->setChecked (!cartesian);
+	assert ((0 != _extrinsicCheckBox) && "QtVtkTransformationPanel::setExtrinsic : null extrinsic checkbox.");
+	_extrinsicCheckBox->setChecked (extrinsic);
 	transformationModifiedCallback ( ) ;
-}	// QtVtkTransformationPanel::setCartesianCoordinateSystem
+}	// QtVtkTransformationPanel::setExtrinsic
 
 
-bool QtVtkTransformationPanel::isCartesianCoordinateSystem ( ) const
+bool QtVtkTransformationPanel::isExtrinsic ( ) const
 {
-	assert ((0 != _sphericalCheckBox) && "QtVtkTransformationPanel::isCartesianCoordinateSystem : null coordinate system checkbox.");
+	assert ((0 != _extrinsicCheckBox) && "QtVtkTransformationPanel::isExtrinsic : null extrinsic checkbox.");
 
-	return !_sphericalCheckBox->isChecked ( );
-}	// QtVtkTransformationPanel::isCartesianCoordinateSystem
-
-
-void QtVtkTransformationPanel::setXOYAngle (double angle)
-{
-	assert ((0 != _xOyAngleTextField) && "QtVtkTransformationPanel::setXOYAngle : null angle text field.");
-	_xOyAngleTextField->setText (QString::number (angle));
-}	// QtVtkTransformationPanel::setXOYAngle
-
-
-double QtVtkTransformationPanel::getXOYAngle ( ) const
-{
-	assert ((0 != _xOyAngleTextField) && "QtVtkTransformationPanel::getXOYAngle : null angle text field.");
-	bool	ok		= true;
-	double	value	= _xOyAngleTextField->text ( ).toDouble (&ok);
-
-	if (false == ok)
-	{
-		UTF8String	errorMsg (charset);
-		errorMsg << _appTitle << " : valeur invalide de l'angle xOy (" << _xOyAngleTextField->text ( ).toStdString ( ) << ")";
-		throw Exception (errorMsg);
-	}	// if (false == ok)
-
-	return value;
-}	// QtVtkTransformationPanel::getXOYAngle
-
-
-void QtVtkTransformationPanel::setXOZAngle (double angle)
-{
-	assert ((0 != _xOzAngleTextField) && "QtVtkTransformationPanel::setXOZAngle : null angle text field.");
-	_xOzAngleTextField->setText (QString::number (angle));
-}	// QtVtkTransformationPanel::setXOZAngle
-
-
-double QtVtkTransformationPanel::getXOZAngle ( ) const
-{
-	assert ((0 != _xOzAngleTextField) && "QtVtkTransformationPanel::getXOZAngle : null sectionRaangledius text field.");
-	bool	ok		= true;
-	double	value	= _xOzAngleTextField->text ( ).toDouble (&ok);
-
-	if (false == ok)
-	{
-		UTF8String	errorMsg (charset);
-		errorMsg << _appTitle << " : valeur invalide de l'angle xOz (" << _xOzAngleTextField->text ( ).toStdString ( ) << ")";
-		throw Exception (errorMsg);
-	}	// if (false == ok)
-
-	return value;
-}	// QtVtkTransformationPanel::getXOZAngle
-
-
-void QtVtkTransformationPanel::setYOZAngle (double angle)
-{
-	assert ((0 != _yOzAngleTextField) && "QtVtkTransformationPanel::setYOZAngle : null angle text field.");
-	_yOzAngleTextField->setText (QString::number (angle));
-}	// QtVtkTransformationPanel::setYOZAngle
-
-
-double QtVtkTransformationPanel::getYOZAngle ( ) const
-{
-	assert ((0 != _yOzAngleTextField) && "QtVtkTransformationPanel::getYOZAngle : null angle text field.");
-	bool	ok		= true;
-	double	value	= _yOzAngleTextField->text ( ).toDouble (&ok);
-
-	if (false == ok)
-	{
-		UTF8String	errorMsg (charset);
-		errorMsg << _appTitle << " : valeur invalide de l'angle yOz (" << _yOzAngleTextField->text ( ).toStdString ( ) << ")";
-		throw Exception (errorMsg);
-	}	// if (false == ok)
-
-	return value;
-}	// QtVtkTransformationPanel::getYOZAngle
-
-
-void QtVtkTransformationPanel::setPhiAngle (double angle)
-{
-	setXOYAngle (angle);	// Le nom ne correspond pas, c'est la position dans le panneau qui compte ici.
-}	// QtVtkTransformationPanel::setPhiAngle
-
-
-double QtVtkTransformationPanel::getPhiAngle ( ) const
-{
-	return getXOYAngle ( );
-}	// QtVtkTransformationPanel::getPhiAngle
-
-
-void QtVtkTransformationPanel::setThetaAngle (double angle)
-{
-	setXOZAngle (angle);	// Le nom ne correspond pas, c'est la position dans le panneau qui compte ici.
-}	// QtVtkTransformationPanel::setThetaAngle
-
-
-double QtVtkTransformationPanel::getThetaAngle ( ) const
-{
-	return getXOZAngle ( );
-}	// QtVtkTransformationPanel::getThetaAngle
-
-
-void QtVtkTransformationPanel::setOmegaAngle (double angle)
-{
-	setYOZAngle (angle);	// Le nom ne correspond pas, c'est la position dans le panneau qui compte ici.
-}	// QtVtkTransformationPanel::setOmegaAngle
-
-
-double QtVtkTransformationPanel::getOmegaAngle ( ) const
-{
-	return getYOZAngle ( );
-}	// QtVtkTransformationPanel::getOmegaAngle
-
-
-void QtVtkTransformationPanel::setTranslation (double dx, double dy, double dz)
-{
-	assert ((0 != _translationPanel) && "QtVtkTransformationPanel::setTranslation : null translation panel.");
-	_translationPanel->setX (dx);
-	_translationPanel->setY (dy);
-	_translationPanel->setZ (dz);
-}	// QtVtkTransformationPanel::setTranslation
-
-
-void QtVtkTransformationPanel::getTranslation (double& dx, double& dy, double& dz) const
-{
-	assert ((0 != _translationPanel) && "QtVtkTransformationPanel::getTranslation : null translation panel.");
-	dx	= _translationPanel->getX ( );
-	dy	= _translationPanel->getY ( );
-	dz	= _translationPanel->getZ ( );
-}	// QtVtkTransformationPanel::getTranslation
+	return !_extrinsicCheckBox->isChecked ( );
+}	// QtVtkTransformationPanel::isExtrinsic
 
 
 vtkTransform* QtVtkTransformationPanel::getTransformation ( ) const
 {
-	vtkTransform*	transformation	= vtkTransform::New ( );	// PreMultiply
-	assert (0 != transformation);
-	
-	const bool	spherical	= !isCartesianCoordinateSystem ( );
-	double	dx	= 0., dy	= 0., dz	= 0.;
-	getTranslation (dx, dy, dz);
-	if (true == spherical)
-	{
-		transformation->Translate (dx, dy, dz);
-		// RotateY(phi) → RotateZ(theta) → RotateX(omega) : chaque rotation s’applique dans le repère local courant, 
-		// méthode standard pour les angles de Tait-Bryan intrinsèques (ZYX) en robotique/aéronautique. Dixit mistral.ai.
-		// Pour ce il faut inverser l'ordre des rotations par rapport à la même transformation mais à repère constant.
-		// Mais comme on est (par défaut) en PreMultiply il faut de nouveau inverser l'ordre des rotations !
-		transformation->RotateY (getPhiAngle ( ));
-		transformation->RotateZ (getThetaAngle ( ));
-		transformation->RotateX (getOmegaAngle ( ));
-/*
-double	ptIn [3]	= { 1., 1., 1. };
-double	ptOut [3]	= { 0., 0., 0. };
-transformation->TransformPoint (ptIn, ptOut);
-cout << "IN (" << ptIn [0] << ", " << ptIn [1] << ", " << ptIn [2] << ") OUT (" << ptOut [0] << ", " << ptOut [1] << ", " << ptOut [2] << ")" << endl;
-*/
-	}	// if (true == spherical)
-	else
-	{
-		transformation->Translate (dx, dy, dz);
-		transformation->RotateY (getXOZAngle ( ));
-		transformation->RotateX (getYOZAngle ( ));
-		transformation->RotateZ (getXOYAngle ( ));
-	}	// else if (true == spherical)
-
-	return transformation;
+	assert (0 != _extrinsicPanel);
+	assert (0 != _intrinsicPanel);
+	return true == isExtrinsic ( ) ? _extrinsicPanel->getTransformation ( ) : _intrinsicPanel->getTransformation ( );
 }	// QtVtkTransformationPanel::getTransformation
 
 
 UTF8String QtVtkTransformationPanel::getTransformationDescription ( ) const
 {
-	UTF8String	description (charset);
-	
-	const bool	spherical	= !isCartesianCoordinateSystem ( );
-	double	dx	= 0., dy	= 0., dz	= 0.;
-	getTranslation (dx, dy, dz);
-	if (true == spherical)
+	assert (0 != _extrinsicPanel);
+	assert (0 != _intrinsicPanel);
+	return true == isExtrinsic ( ) ? _extrinsicPanel->getTransformationDescription ( ) : _intrinsicPanel->getTransformationDescription ( );
+}	// QtVtkTransformationPanel::getTransformationDescription
+
+
+const QtVtkExtrinsicTransformationPanel& QtVtkTransformationPanel::getExtrinsicPanel ( ) const
+{
+	assert (0 != _extrinsicPanel);
+	return *_extrinsicPanel;
+}	// QtVtkTransformationPanel::getExtrinsicPanel
+
+
+const QtVtkIntrinsicTransformationPanel& QtVtkTransformationPanel::getIntrinsicPanel ( ) const
+{
+	assert (0 != _intrinsicPanel);
+	return *_intrinsicPanel;
+}	// QtVtkTransformationPanel::getIntrinsicPanel
+
+
+void QtVtkTransformationPanel::transformationTypeModifiedCallback ( )
+{
+	const bool	extrinsic	= isExtrinsic ( );
+	if (true == extrinsic)
 	{
-		description << "Transformation en repère sphérique. Phi = " << getPhiAngle ( ) << " degrés, thêta = " << getThetaAngle ( ) << " degrés, oméga = " 
-		            << getOmegaAngle ( ) << " degrés, translation de (" << dx << ", " << dy << ", " << dz << ")";
-	}	// if (true == spherical)
+		_intrinsicPanel->setVisible (false);
+		_extrinsicPanel->setVisible (true);
+		QPixmap	pixmap (":/images/spherique.png");
+		QSize	s	= pixmap.size ( );
+		pixmap	= pixmap.scaledToHeight (0.5 * s.height ( ), Qt::SmoothTransformation);
+		_imageLabel->setPixmap (pixmap);
+	}	// if (true == extrinsic)
 	else
 	{
-		description << "Transformation en repère cartésien. Rotations autour de Oy = " << getXOZAngle ( ) << " degrés, autour de Ox = " << getYOZAngle ( ) 
-		            << " degrés, autour de Oz = " << getXOYAngle ( ) << " degrés, translation de (" << dx << ", " << dy << ", " << dz << ")";
-	}	// else if (true == spherical)
-	
-	
-	return description;
-}	// QtVtkTransformationPanel::getTransformationDescription
+		_extrinsicPanel->setVisible (false);
+		_intrinsicPanel->setVisible (true);
+		QPixmap	pixmap (":/images/spherique2.png");
+		QSize	s	= pixmap.size ( );
+		pixmap	= pixmap.scaledToHeight (0.5 * s.height ( ), Qt::SmoothTransformation);
+		_imageLabel->setPixmap (pixmap);
+	}	// else if (true == extrinsic)
+
+	emit (transformationChanged ( ));
+}	// QtVtkTransformationPanel::transformationTypeModifiedCallback
 
 
 void QtVtkTransformationPanel::transformationModifiedCallback ( )
 {
-	assert (0 != _xOyAngleLabel && "QtVtkTransformationPanel::transformationModifiedCallback : null xOy label");
-	assert (0 != _xOzAngleLabel && "QtVtkTransformationPanel::transformationModifiedCallback : null xOz label");
-	assert (0 != _yOzAngleLabel && "QtVtkTransformationPanel::transformationModifiedCallback : null yOz label");
-	assert (0 != _xOyAngleTextField && "QtVtkTransformationPanel::transformationModifiedCallback : null xOy textfield");
-	assert (0 != _xOzAngleTextField && "QtVtkTransformationPanel::transformationModifiedCallback : null xOz textfield");
-	assert (0 != _yOzAngleTextField && "QtVtkTransformationPanel::transformationModifiedCallback : null yOz textfield");
-	try
-	{
-		QtAutoWaitingCursor		waitingCursor (true);
-
-		const bool	spherical	= !isCartesianCoordinateSystem ( );
-		if (true == spherical)
-		{
-			_contextualHelpLabel->setText (QSTR ("Rotation de ") + QtStringHelper::phiMin ( ) + " puis rotation de " + QtStringHelper::thetaMaj ( ) + " puis rotation de " + QtStringHelper::omegaMaj ( ) + " puis translation.");
-			_xOyAngleLabel->setText (QtStringHelper::phiMin ( ) + " (angle dans le plan xOz) :");
-			_xOyAngleLabel->setToolTip (QSTR ("Zone de saisie de l'angle de précession de la transformation (dans le plan xOz)."));
-			_xOyAngleTextField->setToolTip (QSTR ("Zone de saisie de l'angle de précession de la transformation (dans le plan xOz)."));
-			_xOzAngleLabel->setText (QtStringHelper::thetaMaj ( ) + " (angle avec l'axe des abscisses) :");
-			_xOzAngleLabel->setToolTip (QSTR ("Zone de saisie de l'angle de nutation du tore (par rapport à l'axe des abscisses)."));
-			_xOzAngleTextField->setToolTip (QSTR ("Zone de saisie de l'angle de nutation du tore (par rapport à l'axe des abscisses)."));
-			_yOzAngleLabel->setText (QtStringHelper::omegaMaj ( ) + " (angle de rotation autour de l'axe des abscisses) :");
-			_yOzAngleLabel->setToolTip (QSTR ("Zone de saisie de l'angle autour de l'axe des abscisses."));
-			_yOzAngleTextField->setToolTip (QSTR ("Zone de saisie de l'angle autour de l'axe des abscisses."));
-		}
-		else
-		{
-			_contextualHelpLabel->setText (QSTR ("Rotation autour de Oz, puis autour de Ox, puis autour de Oy, puis translation."));
-			_xOyAngleLabel->setText (QSTR ("Angle de rotation dans le plan xOy :"));
-			_xOyAngleLabel->setToolTip (QSTR ("Zone de saisie de l'angle de rotation de la transformation dans le plan xOy."));
-			_xOyAngleTextField->setToolTip (QSTR ("Zone de saisie de l'angle de rotation de la transformation dans le plan xOy."));
-			_xOzAngleLabel->setText (QSTR ("Angle de rotation dans le plan xOz :"));
-			_xOzAngleLabel->setToolTip (QSTR ("Zone de saisie de l'angle de rotation de la transformation dans le plan xOy."));
-			_xOzAngleTextField->setToolTip (QSTR ("Zone de saisie de l'angle de rotation de la transformation dans le plan xOz."));
-			_yOzAngleLabel->setText (QSTR ("Angle de rotation dans le plan yOz :"));
-			_yOzAngleLabel->setToolTip (QSTR ("Zone de saisie de l'angle de rotation de la transformation dans le plan yOz."));
-			_yOzAngleTextField->setToolTip (QSTR ("Zone de saisie de l'angle de rotation de la transformation dans le plan yOz."));
-		}
-
-		getXOYAngle ( );
-		getXOZAngle ( );
-		getYOZAngle ( );
-		double	dx	= 0., dy	= 0., dz	= 0.;
-		getTranslation (dx, dy, dz);
-		
-		emit (transformationChanged ( ));
-	}
-	catch (const Exception& exc)
-	{
-		UTF8String	errorMsg (charset);
-		errorMsg << "Valeur invalide : " << exc.getFullMessage ( );
-		QMessageBox::critical (this, UTF8TOQSTRING (_appTitle), UTF8TOQSTRING (errorMsg), QMessageBox::Ok, QMessageBox::NoButton);
-	}
-	catch (const IN_STD exception& stdExc)	// IN_STD : pour OSF
-	{
-		UTF8String	errorMsg (charset);
-		errorMsg << "Valeur invalide : " << stdExc.what ( );
-		QMessageBox::critical (this, UTF8TOQSTRING (_appTitle),  UTF8TOQSTRING (errorMsg), QMessageBox::Ok, QMessageBox::NoButton);
-	}
-	catch (...)
-	{
-		QMessageBox::critical (this, UTF8TOQSTRING (_appTitle), "Saisie invalide", QMessageBox::Ok, QMessageBox::NoButton);
-	}
+	emit (transformationChanged ( ));
 }	// QtVtkTransformationPanel::transformationModifiedCallback
 
 
