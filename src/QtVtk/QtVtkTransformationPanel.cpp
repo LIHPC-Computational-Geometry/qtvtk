@@ -304,10 +304,11 @@ vtkTransform* QtVtkTransformationPanel::getTransformation ( ) const
 		transformation->Translate (dx, dy, dz);
 		// RotateY(phi) → RotateZ(theta) → RotateX(omega) : chaque rotation s’applique dans le repère local courant, 
 		// méthode standard pour les angles de Tait-Bryan intrinsèques (ZYX) en robotique/aéronautique. Dixit mistral.ai.
-		// NB : on est en pre-multiply, d'où l'inversion des rotations.
-		transformation->RotateX (getOmegaAngle ( ));
-		transformation->RotateZ (getThetaAngle ( ));
+		// Pour ce il faut inverser l'ordre des rotations par rapport à la même transformation mais à repère constant.
+		// Mais comme on est (par défaut) en PreMultiply il faut de nouveau inverser l'ordre des rotations !
 		transformation->RotateY (getPhiAngle ( ));
+		transformation->RotateZ (getThetaAngle ( ));
+		transformation->RotateX (getOmegaAngle ( ));
 /*
 double	ptIn [3]	= { 1., 1., 1. };
 double	ptOut [3]	= { 0., 0., 0. };
