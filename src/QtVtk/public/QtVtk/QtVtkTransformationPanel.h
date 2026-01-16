@@ -1,7 +1,7 @@
 /**
  * \file		QtVtkTransformationPanel.h
  * \author		Charles PIGNEROL, CEA/DAM/DCLC
- * \date		13/01/2026
+ * \date		16/01/2026
  */
 #ifndef QT_VTK_TRANSFORMATION_PANEL_H
 #define QT_VTK_TRANSFORMATION_PANEL_H
@@ -12,8 +12,8 @@
 #include <QtUtil/QtTextField.h>
 #include <QCheckBox>
 #include <QLabel>
-
-#include <vtkTransform.h>
+#include <VtkContrib/vtkFloatingPointType.h>
+#include <VtkContrib/vtkTrihedron.h>
 
 #include <string>
 
@@ -164,8 +164,6 @@ class QtVtkExtrinsicTransformationPanel : public QWidget
 };	// class QtVtkExtrinsicTransformationPanel
 
 
-
-
 /**
  * <P>
  * Panneau Qt permettant la saisie des paramètres d'une transformation linéaire VTK intrinsèque, c'est à dire appliquée
@@ -191,12 +189,14 @@ class QtVtkIntrinsicTransformationPanel : public QWidget
 	/** Constructeur.
 	 * @param		widget parent. Ne doit pas être nul.
 	 * @param		titre de l'application (pour les messages d'erreur).
+	 * @param		Pour affichage des trièdres repère global/repère local post-transformation, un gestionnaire de rendu et la boite englobante de la zone d'intérêt
+	 * @param		<I>true</I> s'il faut afficher les trihèdres repère global/repère local post-transformation, <I>false</I> dans le cas contraire
 	 * @param		coordonnées du centre du repère local
 	 * @param		Angle phi, exprimé en degrés
 	 * @param		Angle thêta, exprimé en degrés
 	 * @param		Angle oméga, exprimé en degrés
 	 */
-	QtVtkIntrinsicTransformationPanel (QWidget* parent, const IN_UTIL UTF8String& appTitle, double x = 0., double y = 0., double z = 0., double phi = 0., double theta = 0., double omega = 0.);
+	QtVtkIntrinsicTransformationPanel (QWidget* parent, const IN_UTIL UTF8String& appTitle, vtkRenderer* renderer, vtkFloatingPointType bounds [6], bool displayTrihedrons = true, double x = 0., double y = 0., double z = 0., double phi = 0., double theta = 0., double omega = 0.);
 
 
 	/** Destructeur. */
@@ -252,13 +252,28 @@ class QtVtkIntrinsicTransformationPanel : public QWidget
 	 */
 	virtual IN_UTIL UTF8String getTransformationDescription ( ) const;
 
+	/**
+	 * @return			<I>true</I> s'il faut afficher les trihèdres repère global/repère local post-transformation, <I>false</I> dans le cas contraire
+	 */
+	virtual bool displayTrihedron ( ) const;
+
+
 	signals :
 
 	/**
 	 * Signal émis lorsque l'utilisateur change le paramétrage de la transformation.
 	 */
-	 void transformationChanged ( );
+	void transformationChanged ( );
 
+
+
+	protected :
+
+	/**
+	 * Affiche/masque les trièdres repère global/local selon que ce panneau est visible ou non.
+	 */
+	virtual void showEvent(QShowEvent* event);
+	virtual void hideEvent (QHideEvent* event);
 
 
 	protected slots :
@@ -268,6 +283,12 @@ class QtVtkIntrinsicTransformationPanel : public QWidget
 	 * Emet le signal <I>transformationChanged</I>.
 	 */
 	virtual void transformationModifiedCallback ( );
+	
+	/**
+	 * Appelé lorsqu'il faut afficher/masquer les trièdres représentant les repère global et local post-transformation.
+	 * Actualise la vue graphique.
+	 */
+	virtual void displayTrihedronsCallback ( );
 
 
 	private :
@@ -292,12 +313,19 @@ class QtVtkIntrinsicTransformationPanel : public QWidget
 
 	/** L'angle de rotation oméga, en degrés. */
 	QtTextField*						_omegaAngleTextField;
+
+	/** Faut-il afficher les trihèdres repère global/repère local post-transformation ? */
+	QCheckBox*							_trihedronCheckBox;
+
+	/** Les trihèdres repère global/repère local post-transformation. */
+	vtkTrihedron						*_globalTrihedron, *_localTrihedron;
+
+	/** Le gestionnaire de rendu pour affichages VTK. */
+	vtkRenderer*						_renderer;
+	
+	/** La zone graphique d'intérêt. */
+	vtkFloatingPointType				_bounds [6];
 };	// class QtVtkIntrinsicTransformationPanel
-
-
-
-
-
 
 
 /**
@@ -312,30 +340,44 @@ class QtVtkTransformationPanel : public QWidget
 
 	public :
 
-
-	/** Constructeur avec initialisation par une translation extrinsèque.
-	 * @param		widget parent. Ne doit pas être nul.
-	 * @param		titre de l'application (pour les messages d'erreur).
-	 * @param		Angle de rotation dans le plan xOy
-	 * @param		Angle de rotation dans le plan xOz
-	 * @param		Angle de rotation dans le plan yOz
-	 * @param		<I>true</I> si la translation précède les rotations, <I>false</I> si elle suit les rotations.
-	 * @param		translation pré ou post-rotations
+	/**
+	 * Structure assurant la conservation du paramétrage d'une transformation.
 	 */
-	QtVtkTransformationPanel (QWidget* parent, const IN_UTIL UTF8String& appTitle, double xoy = 0., double xoz = 0., double yoz = 0., bool translationFirst = true, double dx = 0., double dy = 0., double dz = 0.);
+	struct TransformationMemento
+	{
+		bool	isExtrinsic;
+		// Paramétrage transformation extrinsèque :
+		double	xoy, xoz, yoz, dx, dy, dz;
+		bool	translationFirst;
+		// Paramétrage transformation intrinsèque :
+		double	x, y, z, phi, theta, omega;
+		bool	displayTrihedron;
+		TransformationMemento ( );
+		TransformationMemento (const TransformationMemento&);
+		TransformationMemento& operator = (const TransformationMemento&);
+	};	// struct TransformationMemento
+
+	/**
+	 * Dimensions des axes des trièdres affichés.
+	 * @see	vtkArrowSource
+	 */
+	static	double	shaftRadius, tipRadius, tipLength;
 
 	/** Constructeur avec initialisation par une translation intrinsèque.
 	 * @param		widget parent. Ne doit pas être nul.
 	 * @param		titre de l'application (pour les messages d'erreur).
-	 * @param		coordonnées du centre du repère local
-	 * @param		Angle phi, exprimé en degrés
-	 * @param		Angle thêta, exprimé en degrés
-	 * @param		Angle oméga, exprimé en degrés
+	 * @param		Pour affichage des trièdres repère global/repère local post-transformation, un gestionnaire de rendu et la boite englobante de la zone d'intérêt
+	 * @param		Paramétrage initial de la transformation
 	 */
-	QtVtkTransformationPanel (QWidget* parent, const IN_UTIL UTF8String& appTitle, double x = 0., double y = 0., double z = 0., double phi = 0., double theta = 0., double omega = 0.);
+	QtVtkTransformationPanel (QWidget* parent, const IN_UTIL UTF8String& appTitle, vtkRenderer* renderer, vtkFloatingPointType bounds [6], const TransformationMemento& memento);
 
 	/** Destructeur. */
 	virtual ~QtVtkTransformationPanel ( );
+
+	/**
+	 * @return	Le paramétrage courant de la transformation.
+	 */
+	virtual TransformationMemento getMemento ( ) const;
 
 	/** 
 	 * @param	<I>true</I> pour afficher le paramétrage d'une transformation extrinsèque, <I>false</I> pour afficher le paramétrage d'une transformation intrinsèque.
@@ -373,16 +415,7 @@ class QtVtkTransformationPanel : public QWidget
 	/**
 	 * Signal émis lorsque l'utilisateur change le paramétrage de la transformation en cours.
 	 */
-	 void transformationChanged ( );
-
-
-
-	protected :
-	
-	/**
-	 * La création des éléments d'IHM.
-	 */
-	virtual void createGui ( );
+	void transformationChanged ( );
 
 
 	protected slots :

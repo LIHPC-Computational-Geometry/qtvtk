@@ -1,9 +1,10 @@
 /**
  * \file		QtVtkTransformationPanel.cpp
  * \author		Charles PIGNEROL, CEA/DAM/DCLC
- * \date		06/01/2026
+ * \date		16/01/2026
  */
 #include "QtVtk/QtVtkTransformationPanel.h"
+#include "QtVtk/QtVTKPointLocalizatorPanel.h"
 
 #include <QtUtil/QtConfiguration.h>
 #include <QtUtil/QtStringHelper.h>
@@ -21,6 +22,9 @@
 #include <QLabel>
 #include <QValidator>
 #include <QMessageBox> 
+
+#include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
 
 
 USING_STD
@@ -222,7 +226,7 @@ bool QtVtkExtrinsicTransformationPanel::isTranslationFirst ( ) const
 {
 	assert ((0 != _translationFirstCheckBox) && "QtVtkExtrinsicTransformationPanel::isTranslationFirst : null coordinate system checkbox.");
 
-	return !_translationFirstCheckBox->isChecked ( );
+	return _translationFirstCheckBox->isChecked ( );
 }	// QtVtkExtrinsicTransformationPanel::isTranslationFirst
 
 
@@ -297,9 +301,13 @@ void QtVtkExtrinsicTransformationPanel::transformationModifiedCallback ( )
 //                    QtVtkIntrinsicTransformationPanel
 // ===========================================================================
 
-QtVtkIntrinsicTransformationPanel::QtVtkIntrinsicTransformationPanel (QWidget* parent, const UTF8String& appTitle, double x, double y, double z, double phi, double theta, double omega)
-	: QWidget (parent), _appTitle (appTitle), _centerPanel (0), _phiAngleTextField (0), _thetaAngleTextField (0), _omegaAngleTextField (0)
+QtVtkIntrinsicTransformationPanel::QtVtkIntrinsicTransformationPanel (
+	QWidget* parent, const UTF8String& appTitle, vtkRenderer* renderer, vtkFloatingPointType bounds [6], bool displayTrihedrons, double x, double y, double z, double phi, double theta, double omega)
+	: QWidget (parent), _appTitle (appTitle), _centerPanel (0), _phiAngleTextField (0), _thetaAngleTextField (0), _omegaAngleTextField (0),
+	  _trihedronCheckBox (0), _globalTrihedron (0), _localTrihedron (0), _renderer (renderer)
 {
+	memcpy (_bounds, bounds, 6 * sizeof (vtkFloatingPointType));
+
 	QtAutoWaitingCursor		waitingCursor (true);
 
 	// Creation de l'ihm :
@@ -361,7 +369,7 @@ QtVtkIntrinsicTransformationPanel::QtVtkIntrinsicTransformationPanel (QWidget* p
 	omegaGroupBox->setMargin (QtConfiguration::margin);
 	omegaGroupBox->setSpacing (QtConfiguration::spacing);
 	layout->addWidget (omegaGroupBox);
-	angleLabel	= new QLabel (QSTR ("Angle ") + QtStringHelper::omegaMin ( ), omegaGroupBox);
+	angleLabel	= new QLabel (QSTR ("Angle ") + QtStringHelper::omegaMaj ( ), omegaGroupBox);
 	qhLayout->addWidget (angleLabel);
 	_omegaAngleTextField	= new QtTextField (QString::number (omega), omegaGroupBox);
 	_omegaAngleTextField->setValidator (new QDoubleValidator (-180., 180., 0, _omegaAngleTextField));
@@ -372,6 +380,13 @@ QtVtkIntrinsicTransformationPanel::QtVtkIntrinsicTransformationPanel (QWidget* p
 	_omegaAngleTextField->setToolTip (QSTR ("Zone de saisie de l'angle de rotation ") + QtStringHelper::omegaMin ( ) + QSTR (" autour de l'axe Ox dans le repère local."));
 	angleLabel->setToolTip (QSTR ("Zone de saisie de l'angle de rotation ") + QtStringHelper::omegaMin ( ) + QSTR (" autour de l'axe Ox dans le repère local."));
 
+	// Afficher les trièdres ?
+	_trihedronCheckBox	= new QCheckBox (QSTR ("Afficher les trièdres"), this);
+	connect (_trihedronCheckBox, SIGNAL(clicked ( )), this, SLOT(displayTrihedronsCallback ( )));
+	_trihedronCheckBox->setChecked (displayTrihedrons);
+	_trihedronCheckBox->setToolTip (QSTR ("Cochée des trièdres montrant le repère avant et après transformation seront affichés dans la fenêtre graphhique."));
+	layout->addWidget (_trihedronCheckBox);
+	
 	layout->activate ( );
 	setMinimumSize (layout->sizeHint ( ));
 }	// QtVtkIntrinsicTransformationPanel::QtVtkIntrinsicTransformationPanel
@@ -392,6 +407,8 @@ QtVtkIntrinsicTransformationPanel& QtVtkIntrinsicTransformationPanel::operator =
 
 QtVtkIntrinsicTransformationPanel::~QtVtkIntrinsicTransformationPanel ( )
 {
+	assert (0 != _trihedronCheckBox);
+	_trihedronCheckBox->setChecked (false);
 }	// QtVtkIntrinsicTransformationPanel::~QtVtkIntrinsicTransformationPanel
 
 
@@ -500,7 +517,6 @@ vtkTransform* QtVtkIntrinsicTransformationPanel::getTransformation ( ) const
 	transformation->RotateX (getOmegaAngle ( ));
 	transformation->RotateZ (getThetaAngle ( ));
 	transformation->RotateY (getPhiAngle ( ));
-	transformation->Translate (-x, -y, -z);	// Annulation centrage des rotations intrinsèques
 
 	return transformation;
 }	// QtVtkIntrinsicTransformationPanel::getTransformation
@@ -519,55 +535,193 @@ UTF8String QtVtkIntrinsicTransformationPanel::getTransformationDescription ( ) c
 }	// QtVtkIntrinsicTransformationPanel::getTransformationDescription
 
 
+bool QtVtkIntrinsicTransformationPanel::displayTrihedron ( ) const
+{
+	assert (0 != _trihedronCheckBox);
+	return _trihedronCheckBox->isChecked ( );
+}	// QtVtkIntrinsicTransformationPanel::displayTrihedron
+
+
+void QtVtkIntrinsicTransformationPanel::showEvent (QShowEvent* event)
+{
+	QWidget::showEvent (event);
+	
+	if ((0 != _renderer) && (true == displayTrihedron ( )))
+	{
+		if ((0 == _globalTrihedron) || (0 == _localTrihedron))
+			displayTrihedronsCallback ( );
+		else
+		{
+			if (0 != _globalTrihedron)
+				_renderer->AddActor (_globalTrihedron);
+			if (0 != _localTrihedron)
+				_renderer->AddActor (_localTrihedron);
+			if (0 != _renderer->GetRenderWindow ( ))
+				_renderer->GetRenderWindow ( )->Render ( );
+		}	// else if ((0 != _renderer) && (true == displayTrihedron ( )))
+	}	// if ((0 != _renderer) && (true == displayTrihedron ( )))
+}	// QtVtkIntrinsicTransformationPanel::showEvent
+
+
+void QtVtkIntrinsicTransformationPanel::hideEvent (QHideEvent* event)
+{
+	if ((0 != _renderer) && (true == displayTrihedron ( )))
+	{
+		if (0 != _globalTrihedron)
+			_renderer->RemoveActor (_globalTrihedron);
+		if (0 != _localTrihedron)
+			_renderer->RemoveActor (_localTrihedron);
+		if (0 != _renderer->GetRenderWindow ( ))
+			_renderer->GetRenderWindow ( )->Render ( );
+	}	// if ((0 != _renderer) && (true == displayTrihedron ( )))
+
+	QWidget::hideEvent (event);
+}	// QtVtkIntrinsicTransformationPanel::hideEvent
+
+
 void QtVtkIntrinsicTransformationPanel::transformationModifiedCallback ( )
 {
+	if ((0 != _renderer) && (true == displayTrihedron ( )))
+	{
+		if (0 != _localTrihedron)
+			_localTrihedron->SetTransform (getTransformation ( ));
+		if (0 != _renderer->GetRenderWindow ( ))
+			_renderer->GetRenderWindow ( )->Render ( );
+	}	// if ((0 != _renderer) && (true == displayTrihedron ( )))
+
 	emit (transformationChanged ( ));
 }	// QtVtkIntrinsicTransformationPanel::transformationModifiedCallback
+
+
+static vtkTrihedron* createTrihedron (bool global, vtkFloatingPointType bounds [6])
+{
+	// Les trièdres doivent dépasser légèrement de la zone d'intérêt :
+	const double	xscale	= 1.25 * (bounds [1] - bounds [0]);
+	const double	yscale	= 1.25 * (bounds [3] - bounds [2]);
+	const double	zscale	= 1.25 * (bounds [5] - bounds [4]);
+			
+	vtkTrihedron*	trihedron	= vtkTrihedron::New ( );
+	if (true == global)
+	{
+		trihedron->SetAxisLabels ("    x", "    y", "    z");
+		trihedron->SetLabelsOffsets (-15, -15, -15);
+	}
+	else
+	{
+		trihedron->SetAxisLabels ("x'    ", "y'    ", "z'    ");
+		trihedron->SetLabelsOffsets (-15, -15, -15);
+	}	// else if (true == global)
+		
+	trihedron->SetLabel2D (true);
+	// Rem CP : c'est sans effet si je passe des valeurs != à SetScale pour x, y et z. Pourquoi ???
+	trihedron->GetXAxisArrowActor ( ).SetScale (xscale, xscale, xscale);
+	trihedron->GetYAxisArrowActor ( ).SetScale (yscale, yscale, yscale);
+	trihedron->GetZAxisArrowActor ( ).SetScale (zscale, zscale, zscale);
+	trihedron->GetXAxisArrowSource ( ).SetShaftRadius (QtVtkTransformationPanel::shaftRadius / xscale);
+	trihedron->GetXAxisArrowSource ( ).SetTipRadius (QtVtkTransformationPanel::tipRadius / xscale);
+	trihedron->GetXAxisArrowSource ( ).SetTipLength (QtVtkTransformationPanel::tipLength / xscale);
+	trihedron->GetYAxisArrowSource ( ).SetShaftRadius (QtVtkTransformationPanel::shaftRadius / yscale);
+	trihedron->GetYAxisArrowSource ( ).SetTipRadius (QtVtkTransformationPanel::tipRadius / yscale);
+	trihedron->GetYAxisArrowSource ( ).SetTipLength (QtVtkTransformationPanel::tipLength / yscale);
+	trihedron->GetZAxisArrowSource ( ).SetShaftRadius (QtVtkTransformationPanel::shaftRadius / zscale);
+	trihedron->GetZAxisArrowSource ( ).SetTipRadius (QtVtkTransformationPanel::tipRadius / zscale);
+	trihedron->GetZAxisArrowSource ( ).SetTipLength (QtVtkTransformationPanel::tipLength / zscale);
+
+	return trihedron;
+}	// createTrihedron
+
+
+void QtVtkIntrinsicTransformationPanel::displayTrihedronsCallback ( )
+{
+	if (0 != _renderer)
+	{
+		if (true == displayTrihedron ( ))
+		{
+/* CP : En attente, pour fonctionnement avec un slider type QtExpRoomToMeshTransformationPanel::applyTransformations
+ 			static const double	trihedronBounds [6]	= { 0., 1., 0., 1., 0., 1. };			
+			const double	zoomMin	= 0.8, zoomMax	= 1.5;
+			const int		min	= 0, max	= 100, val	= (max - min) / 2;		// slider
+			const double	scale	= QtVTKPointLocalizatorPanel::zoomValue (val, (double*)trihedronBounds, _bounds, min, max, zoomMin, zoomMax);
+*/
+			
+			if (0 == _globalTrihedron)
+				_globalTrihedron	= createTrihedron (true, _bounds);
+			if (0 == _localTrihedron)
+				_localTrihedron		= createTrihedron (false, _bounds);
+			
+			_renderer->AddActor (_globalTrihedron);
+			_renderer->AddActor (_localTrihedron);
+			transformationModifiedCallback ( );
+		}	// if (true == displayTrihedron ( ))
+		else
+		{
+			if (0 != _globalTrihedron)
+			{
+				_renderer->RemoveActor (_globalTrihedron);
+				_globalTrihedron->Delete ( );
+				_globalTrihedron	= 0;
+			}	// if (0 != _globalTrihedron)
+			if (0 != _localTrihedron)
+			{
+				_renderer->RemoveActor (_localTrihedron);
+				_localTrihedron->Delete ( );
+				_localTrihedron	= 0;
+			}	// if (0 != _localTrihedron)
+			if (0 != _renderer->GetRenderWindow ( ))
+				_renderer->GetRenderWindow ( )->Render ( );
+		}	// else if if (true == displayTrihedron ( ))
+	}	// if (0 != _renderer)
+}	// QtVtkIntrinsicTransformationPanel::displayTrihedronsCallback
+
+
+// ===========================================================================
+//              QtVtkTransformationPanel::TransformationMemento
+// ===========================================================================
+
+QtVtkTransformationPanel::TransformationMemento::TransformationMemento ( )
+	: isExtrinsic (true), xoy (0.), xoz (0.), yoz (0.), dx (0.), dy (0.), dz (0.), translationFirst (true), x (0.), y (0.), z (0.), phi (0.), theta (0.), omega (0.), displayTrihedron (true)
+{
+}	// TransformationMemento::TransformationMemento
+
+
+QtVtkTransformationPanel::TransformationMemento::TransformationMemento (const QtVtkTransformationPanel::TransformationMemento& m)
+	: isExtrinsic (m.isExtrinsic), xoy (m.xoy), xoz (m.xoz), yoz (m.yoz), dx (m.dx), dy (m.dy), dz (m.dz), translationFirst (m.translationFirst),
+	  x (m.x), y (m.y), z (m.z), phi (m.phi), theta (m.theta), omega (m.omega), displayTrihedron (m.displayTrihedron)
+{
+}	// TransformationMemento::TransformationMemento
+
+
+QtVtkTransformationPanel::TransformationMemento& QtVtkTransformationPanel::TransformationMemento::operator = (const QtVtkTransformationPanel::TransformationMemento& m)
+{
+	isExtrinsic			= m.isExtrinsic;
+	xoy					= m.xoy;
+	xoz					= m.xoz;
+	yoz					= m.yoz;
+	dx					= m.dx;
+	dy					= m.dy;
+	dz					= m.dz;
+	translationFirst	= m.translationFirst;
+	x					= m.x;
+	y					= m.y;
+	z					= m.z;
+	phi					= m.phi;
+	theta				= m.theta;
+	omega				= m.omega;
+	displayTrihedron	= m.displayTrihedron;
+
+	return *this;
+}	// TransformationMemento::operator =
 
 
 // ===========================================================================
 //                         QtVtkTransformationPanel
 // ===========================================================================
 
+double	QtVtkTransformationPanel::shaftRadius	= 0.01, QtVtkTransformationPanel::tipRadius	= 0.03, QtVtkTransformationPanel::tipLength	= 0.1;
 
-QtVtkTransformationPanel::QtVtkTransformationPanel (QWidget* parent, const UTF8String& appTitle, double xoy, double xoz, double yoz, bool translationFirst, double dx, double dy, double dz)
+QtVtkTransformationPanel::QtVtkTransformationPanel (
+	QWidget* parent, const UTF8String& appTitle, vtkRenderer* renderer, vtkFloatingPointType bounds [6], const QtVtkTransformationPanel::TransformationMemento& memento)
 	: QWidget (parent), _appTitle (appTitle), _extrinsicCheckBox (0), _contextualHelpLabel (0), _imageLabel (0),_extrinsicPanel (0), _intrinsicPanel (0)
-{
-	createGui ( );
-	assert (0 != _extrinsicPanel);
-	assert (0 != _intrinsicPanel);
-	
-	// On affiche le bon panneau :
-	_extrinsicCheckBox->setChecked (true);
-	_extrinsicPanel->setXOYAngle (xoy);
-	_extrinsicPanel->setXOZAngle (xoz);
-	_extrinsicPanel->setYOZAngle (yoz);
-	_extrinsicPanel->setTranslationFirst (translationFirst);
-	_extrinsicPanel->setTranslation (dx, dy, dz);
-	transformationModifiedCallback ( );
-	layout ( )->activate ( );
-}	// QtVtkTransformationPanel::QtVtkTransformationPanel
-
-
-QtVtkTransformationPanel::QtVtkTransformationPanel (QWidget* parent, const UTF8String& appTitle, double x, double y, double z, double phi, double theta, double omega)
-	: QWidget (parent), _appTitle (appTitle), _extrinsicCheckBox (0), _contextualHelpLabel (0), _imageLabel (0),_extrinsicPanel (0), _intrinsicPanel (0)
-{
-	createGui ( );
-	assert (0 != _extrinsicPanel);
-	assert (0 != _intrinsicPanel);
-
-	// On affiche le bon panneau :
-	_extrinsicCheckBox->setChecked (false);
-	_intrinsicPanel->setCenter (x, y, z);
-	_intrinsicPanel->setPhiAngle (phi);
-	_intrinsicPanel->setThetaAngle (theta);
-	_intrinsicPanel->setOmegaAngle (omega);
-	transformationModifiedCallback ( );
-	layout ( )->activate ( );
-}	// QtVtkTransformationPanel::QtVtkTransformationPanel
-
-
-void QtVtkTransformationPanel::createGui ( )
 {
 	QtAutoWaitingCursor		waitingCursor (true);
 
@@ -593,11 +747,62 @@ void QtVtkTransformationPanel::createGui ( )
 	QString	tip (QSTR ("Coché, la transformation est extrinsèque, c.a.d. dans le repère global, les axes ne suivent pas les rotations."));
 	_extrinsicCheckBox->setToolTip (tip);
 	layout->addWidget (_extrinsicCheckBox);
+	
+	// Les panneaux de transformation :
+	_extrinsicPanel	= new QtVtkExtrinsicTransformationPanel (this, _appTitle);
+	connect (_extrinsicPanel, SIGNAL (transformationChanged ( )), this, SLOT (transformationModifiedCallback ( )));
+	layout->addWidget (_extrinsicPanel);
+	_intrinsicPanel	= new QtVtkIntrinsicTransformationPanel (this, _appTitle, renderer, bounds, memento.displayTrihedron);
+	connect (_intrinsicPanel, SIGNAL (transformationChanged ( )), this, SLOT (transformationModifiedCallback ( )));
+	layout->addWidget (_intrinsicPanel);
 
 	// La représentation de la transformation :
 	_imageLabel	= new QLabel ("", this);
 	mainLayout->addWidget (_imageLabel);
-}	// QtVtkTransformationPanel::createGui
+	
+	// On affiche le bon panneau :
+	_extrinsicCheckBox->setChecked (memento.isExtrinsic);
+	if (true == memento.isExtrinsic)
+	{
+		_extrinsicPanel->setXOYAngle (memento.xoy);
+		_extrinsicPanel->setXOZAngle (memento.xoz);
+		_extrinsicPanel->setYOZAngle (memento.yoz);
+		_extrinsicPanel->setTranslationFirst (memento.translationFirst);
+		_extrinsicPanel->setTranslation (memento.dx, memento.dy, memento.dz);
+	}	// if (true == memento.isExtrinsic)
+	else
+	{
+		_intrinsicPanel->setCenter (memento.x, memento.y, memento.z);
+		_intrinsicPanel->setPhiAngle (memento.phi);
+		_intrinsicPanel->setThetaAngle (memento.theta);
+		_intrinsicPanel->setOmegaAngle (memento.omega);
+	}	// else if (true == memento.isExtrinsic)
+
+	transformationTypeModifiedCallback ( );
+	mainLayout->activate ( );
+}	// QtVtkTransformationPanel::QtVtkTransformationPanel
+
+
+QtVtkTransformationPanel::TransformationMemento QtVtkTransformationPanel::getMemento ( ) const
+{
+	assert (0 != _extrinsicPanel);
+	assert (0 != _intrinsicPanel);
+
+	QtVtkTransformationPanel::TransformationMemento	memento;
+	memento.isExtrinsic	= isExtrinsic ( );
+	
+	memento.xoy					= _extrinsicPanel->getXOYAngle ( );
+	memento.xoz					= _extrinsicPanel->getXOZAngle ( );
+	memento.yoz					= _extrinsicPanel->getYOZAngle ();
+	memento.translationFirst	= _extrinsicPanel->isTranslationFirst ( );
+	_extrinsicPanel->getTranslation (memento.dx, memento.dy, memento.dz);
+	_intrinsicPanel->getCenter (memento.x, memento.y, memento.z);
+	memento.phi					= _intrinsicPanel->getPhiAngle ( );
+	memento.theta				= _intrinsicPanel->getThetaAngle ( );
+	memento.omega				= _intrinsicPanel->getOmegaAngle ( );
+
+	return memento;
+}	// QtVtkTransformationPanel::getMemento
 
 
 QtVtkTransformationPanel::QtVtkTransformationPanel (const QtVtkTransformationPanel&)
@@ -630,7 +835,7 @@ bool QtVtkTransformationPanel::isExtrinsic ( ) const
 {
 	assert ((0 != _extrinsicCheckBox) && "QtVtkTransformationPanel::isExtrinsic : null extrinsic checkbox.");
 
-	return !_extrinsicCheckBox->isChecked ( );
+	return _extrinsicCheckBox->isChecked ( );
 }	// QtVtkTransformationPanel::isExtrinsic
 
 
@@ -671,7 +876,7 @@ void QtVtkTransformationPanel::transformationTypeModifiedCallback ( )
 	{
 		_intrinsicPanel->setVisible (false);
 		_extrinsicPanel->setVisible (true);
-		QPixmap	pixmap (":/images/spherique.png");
+		QPixmap	pixmap (":/images/extrinsic.png");
 		QSize	s	= pixmap.size ( );
 		pixmap	= pixmap.scaledToHeight (0.5 * s.height ( ), Qt::SmoothTransformation);
 		_imageLabel->setPixmap (pixmap);
@@ -680,7 +885,7 @@ void QtVtkTransformationPanel::transformationTypeModifiedCallback ( )
 	{
 		_extrinsicPanel->setVisible (false);
 		_intrinsicPanel->setVisible (true);
-		QPixmap	pixmap (":/images/spherique2.png");
+		QPixmap	pixmap (":/images/intrinsic.png");
 		QSize	s	= pixmap.size ( );
 		pixmap	= pixmap.scaledToHeight (0.5 * s.height ( ), Qt::SmoothTransformation);
 		_imageLabel->setPixmap (pixmap);
