@@ -1,12 +1,13 @@
 A FAIRE : tester le vtkIntersectionPolyDataFilter de VTK 7, voir si de base il propose les services attendus (Inner, ...).
 
-Version 8.9.0 : 16/01/26
+Version 8.9.0 : 20/01/26
 ===============
 
-Pré-version, fonctionnement OK.
-En attente d'une mise à l'échelle personnalisable des trièdres avec un QSlider, des illustrations et aide actualisés.
+Classe QtVtkTransformationPanel : paramétrage d'une transformation pouvant être extrinsèque (dans le repère global, les axes ne bougent pas)
+ou être intrinsèque (repère local à l'objet, les axes suivent chque étape de la transformation).
 
-Classe QtVtkTransformationPanel.
+A faire : dans la classe QtVtkTransformationPanel une calculette prenant en entrée les coordonnées d'un point et affichant
+en sortie ses coordonnées après transformation (indifférement extrinsèque/intrinsèque).
 
 
 Version 8.8.4 : 31/10/25

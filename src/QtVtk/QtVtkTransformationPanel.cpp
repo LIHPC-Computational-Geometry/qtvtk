@@ -1,7 +1,7 @@
 /**
  * \file		QtVtkTransformationPanel.cpp
  * \author		Charles PIGNEROL, CEA/DAM/DCLC
- * \date		16/01/2026
+ * \date		20/01/2026
  */
 #include "QtVtk/QtVtkTransformationPanel.h"
 #include "QtVtk/QtVTKPointLocalizatorPanel.h"
@@ -584,7 +584,33 @@ void QtVtkIntrinsicTransformationPanel::transformationModifiedCallback ( )
 	if ((0 != _renderer) && (true == displayTrihedron ( )))
 	{
 		if (0 != _localTrihedron)
-			_localTrihedron->SetTransform (getTransformation ( ));
+		{
+			vtkSmartPointer<vtkTransform>	transform (getTransformation ( ));
+			_localTrihedron->SetTransform (transform);
+			double	center [3]	= { 0., 0., 0. };
+			if (0 != transform)
+				transform->GetPosition (center);
+			double	scale [3]	= {
+				_localTrihedron->GetXAxisArrowActor ( ).GetScale ( )[0],
+				_localTrihedron->GetYAxisArrowActor ( ).GetScale ( )[1],
+				_localTrihedron->GetZAxisArrowActor ( ).GetScale ( )[2],
+				};
+			double	xcoords [3]	= { scale [0] * 1., 0.1, 0. };
+			transform->MultiplyPoint (xcoords, xcoords);
+			_localTrihedron->GetXAxisLabelActor2D ( )->GetPositionCoordinate ( )->SetCoordinateSystemToWorld ( );
+			_localTrihedron->GetXAxisLabelActor2D ( )->GetPositionCoordinate ( )->SetValue (
+				xcoords [0] + center [0], xcoords [1] + center [1], xcoords [2] + center [2]);
+			double	ycoords [3]	= { 0.1, scale [1], 0. };
+			transform->MultiplyPoint (ycoords, ycoords);
+			_localTrihedron->GetYAxisLabelActor2D ( )->GetPositionCoordinate ( )->SetCoordinateSystemToWorld ( );
+			_localTrihedron->GetYAxisLabelActor2D ( )->GetPositionCoordinate ( )->SetValue (
+				ycoords [0], ycoords [1], ycoords [2]);	// center a priori inutile pour y ...
+			double	zcoords [3]	= { 0., 0.1, scale [2] };
+			transform->MultiplyPoint (zcoords, zcoords);
+			_localTrihedron->GetZAxisLabelActor2D ( )->GetPositionCoordinate ( )->SetCoordinateSystemToWorld ( );
+			_localTrihedron->GetZAxisLabelActor2D ( )->GetPositionCoordinate ( )->SetValue (
+				zcoords [0] + center [0], zcoords [1] + center [1], zcoords [2] + center [2]);
+		}	// if (0 != _localTrihedron)
 		if (0 != _renderer->GetRenderWindow ( ))
 			_renderer->GetRenderWindow ( )->Render ( );
 	}	// if ((0 != _renderer) && (true == displayTrihedron ( )))
@@ -596,27 +622,38 @@ void QtVtkIntrinsicTransformationPanel::transformationModifiedCallback ( )
 static vtkTrihedron* createTrihedron (bool global, vtkFloatingPointType bounds [6])
 {
 	// Les trièdres doivent dépasser légèrement de la zone d'intérêt :
-	const double	xscale	= 1.25 * (bounds [1] - bounds [0]);
-	const double	yscale	= 1.25 * (bounds [3] - bounds [2]);
-	const double	zscale	= 1.25 * (bounds [5] - bounds [4]);
-			
+	double	xscale	= 1.25 * (bounds [1] - bounds [0]);
+	double	yscale	= 1.25 * (bounds [3] - bounds [2]);
+	double	zscale	= 1.25 * (bounds [5] - bounds [4]);
+	// On peut arriver du 2D : si les 3 sont ~nuls on est mort !
+	if (fabs (yscale) < 1E-9)	yscale	= std::max (xscale, zscale);
+	if (fabs (zscale) < 1E-9)	zscale	= std::max (xscale, yscale);
+	if (fabs (xscale) < 1E-9)	xscale	= std::max (yscale, zscale);
+	
 	vtkTrihedron*	trihedron	= vtkTrihedron::New ( );
+	const int labelOffset	= 2;
 	if (true == global)
 	{
-		trihedron->SetAxisLabels ("    x", "    y", "    z");
-		trihedron->SetLabelsOffsets (-15, -15, -15);
+		trihedron->SetAxisLabels ("x", "y", "z");
+		trihedron->SetLabelsOffsets (-labelOffset, -labelOffset, -labelOffset);
 	}
 	else
 	{
-		trihedron->SetAxisLabels ("x'    ", "y'    ", "z'    ");
-		trihedron->SetLabelsOffsets (-15, -15, -15);
+		trihedron->SetAxisLabels ("x'", "y'", "z'");
+		trihedron->SetLabelsOffsets (labelOffset, labelOffset, labelOffset);
 	}	// else if (true == global)
 		
 	trihedron->SetLabel2D (true);
+	assert (0 != trihedron->GetXAxisLabelActor2D ( ));
+	assert (0 != trihedron->GetYAxisLabelActor2D ( ));
+	assert (0 != trihedron->GetZAxisLabelActor2D ( ));
 	// Rem CP : c'est sans effet si je passe des valeurs != à SetScale pour x, y et z. Pourquoi ???
 	trihedron->GetXAxisArrowActor ( ).SetScale (xscale, xscale, xscale);
 	trihedron->GetYAxisArrowActor ( ).SetScale (yscale, yscale, yscale);
 	trihedron->GetZAxisArrowActor ( ).SetScale (zscale, zscale, zscale);
+	trihedron->GetXAxisLabelActor2D ( )->GetPositionCoordinate ( )->SetValue (xscale * 1., 0.1, 0.);
+	trihedron->GetYAxisLabelActor2D ( )->GetPositionCoordinate ( )->SetValue (0.1, yscale * 1., 0.);
+	trihedron->GetZAxisLabelActor2D ( )->GetPositionCoordinate ( )->SetValue (0., 0.1, zscale * 1.);
 	trihedron->GetXAxisArrowSource ( ).SetShaftRadius (QtVtkTransformationPanel::shaftRadius / xscale);
 	trihedron->GetXAxisArrowSource ( ).SetTipRadius (QtVtkTransformationPanel::tipRadius / xscale);
 	trihedron->GetXAxisArrowSource ( ).SetTipLength (QtVtkTransformationPanel::tipLength / xscale);
@@ -871,11 +908,16 @@ const QtVtkIntrinsicTransformationPanel& QtVtkTransformationPanel::getIntrinsicP
 
 void QtVtkTransformationPanel::transformationTypeModifiedCallback ( )
 {
+	assert (0 != _intrinsicPanel);
+	assert (0 != _extrinsicPanel);
+	assert (0 != _contextualHelpLabel);
+	assert (0 != _imageLabel);
 	const bool	extrinsic	= isExtrinsic ( );
 	if (true == extrinsic)
 	{
 		_intrinsicPanel->setVisible (false);
 		_extrinsicPanel->setVisible (true);
+		_contextualHelpLabel->setText (QSTR ("Transformation extrinsèque (dans le repère global) : les axes ne bougent pas."));
 		QPixmap	pixmap (":/images/extrinsic.png");
 		QSize	s	= pixmap.size ( );
 		pixmap	= pixmap.scaledToHeight (0.5 * s.height ( ), Qt::SmoothTransformation);
@@ -885,9 +927,10 @@ void QtVtkTransformationPanel::transformationTypeModifiedCallback ( )
 	{
 		_extrinsicPanel->setVisible (false);
 		_intrinsicPanel->setVisible (true);
+		_contextualHelpLabel->setText (QSTR ("Transformation intrinsèque (dans le repère local) : les axes sont soumis à chaque étape de la transformation."));
 		QPixmap	pixmap (":/images/intrinsic.png");
 		QSize	s	= pixmap.size ( );
-		pixmap	= pixmap.scaledToHeight (0.5 * s.height ( ), Qt::SmoothTransformation);
+		pixmap	= pixmap.scaledToHeight (1.5 * _intrinsicPanel->height ( ), Qt::SmoothTransformation);
 		_imageLabel->setPixmap (pixmap);
 	}	// else if (true == extrinsic)
 

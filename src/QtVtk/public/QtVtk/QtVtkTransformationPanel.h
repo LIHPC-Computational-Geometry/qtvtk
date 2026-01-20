@@ -1,7 +1,10 @@
 /**
  * \file		QtVtkTransformationPanel.h
  * \author		Charles PIGNEROL, CEA/DAM/DCLC
- * \date		16/01/2026
+ * \date		20/01/2026
+ * 
+ * \todo		une calculette prenant en entrée les coordonnées d'un point et affichant
+ *				en sortie ses coordonnées après transformation (indifférement extrinsèque/intrinsèque).
  */
 #ifndef QT_VTK_TRANSFORMATION_PANEL_H
 #define QT_VTK_TRANSFORMATION_PANEL_H
