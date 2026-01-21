@@ -1,5 +1,12 @@
 A FAIRE : tester le vtkIntersectionPolyDataFilter de VTK 7, voir si de base il propose les services attendus (Inner, ...).
 
+Version 8.9.1 : 21/01/26
+===============
+
+Nouvelle illustration "transformation intrinsèque".
+Divers petites retouches classe QtVtkTransformationPanel.
+
+
 Version 8.9.0 : 20/01/26
 ===============
 

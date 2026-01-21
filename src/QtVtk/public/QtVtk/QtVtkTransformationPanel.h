@@ -420,12 +420,17 @@ class QtVtkTransformationPanel : public QWidget
 	 */
 	void transformationChanged ( );
 
+	/**
+	 * Signal émis lorsque l'utilisateur change de type de transformation en cours.
+	 */
+	void transformationTypeChanged ( );
+
 
 	protected slots :
 
 	/**
 	 * Appelé lorsque l'utilisateur change de type de transformation en cours.
-	 * Emet le signal <I>transformationChanged</I>.
+	 * Emet le signal <I>transformationTypeChanged</I>.
 	 */
 	 void transformationTypeModifiedCallback ( );
 	 

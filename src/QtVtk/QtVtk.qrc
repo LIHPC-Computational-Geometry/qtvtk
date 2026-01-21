@@ -2,6 +2,7 @@
  <qresource>
      <file>images/extrinsic.png</file>
      <file>images/intrinsic.png</file>
+     <file>images/intrinsic_2.png</file>
      <file>images/add_viewpoint.png</file>
      <file>images/remove_viewpoint.png</file>
      <file>images/remove_viewpoints.png</file>

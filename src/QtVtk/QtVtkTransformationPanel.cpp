@@ -69,31 +69,16 @@ QtVtkExtrinsicTransformationPanel::QtVtkExtrinsicTransformationPanel (QWidget* p
 	xOyGroupBox->setMargin (QtConfiguration::margin);
 	xOyGroupBox->setSpacing (QtConfiguration::spacing);
 	layout->addWidget (xOyGroupBox);
-	QLabel*	angleLabel	= new QLabel (QSTR ("Angle de rotation dans le plan xOy:"), xOyGroupBox);
+	QLabel*	angleLabel	= new QLabel (QSTR ("Angle de rotation autour de Oz :"), xOyGroupBox);
 	qhLayout->addWidget (angleLabel);
 	_xOyAngleTextField	= new QtTextField (QString::number (xoy), xOyGroupBox);
 	_xOyAngleTextField->setValidator (new QDoubleValidator (-180., 180., 0, _xOyAngleTextField));
 	qhLayout->addWidget (_xOyAngleTextField);
 	connect (_xOyAngleTextField, SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
 	_xOyAngleTextField->setFixedSize (_xOyAngleTextField->sizeHint ( ));
+	_xOyAngleTextField->setToolTip (QSTR ("Zone de saisie de l'angle de rotation autour de l'axe Oz de la transformation dans le plan xOy."));
+	qhLayout->addWidget (new QLabel (QSTR ("degrés"), xOyGroupBox));
 	qhLayout->addStretch (200);
-	_xOyAngleTextField->setToolTip (QSTR ("Zone de saisie de l'angle de rotation de la transformation dans le plan xOy."));
-
-	QtGroupBox*		xOzGroupBox	= new QtGroupBox (this);
-	qhLayout	= new QHBoxLayout (xOzGroupBox);
-	xOzGroupBox->setLayout (qhLayout);
-	xOzGroupBox->setMargin (QtConfiguration::margin);
-	xOzGroupBox->setSpacing (QtConfiguration::spacing);
-	layout->addWidget (xOzGroupBox);
-	angleLabel	= new QLabel (QSTR ("Angle de rotation dans le plan xOz:"), xOzGroupBox);
-	qhLayout->addWidget (angleLabel);
-	_xOzAngleTextField	= 	new QtTextField (QString::number (xoz), xOzGroupBox);
-	_xOzAngleTextField->setValidator (new QDoubleValidator (-180., 180., 0, _xOzAngleTextField));
-	qhLayout->addWidget (_xOzAngleTextField);
-	connect (_xOzAngleTextField, SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
-	_xOzAngleTextField->setFixedSize (_xOzAngleTextField->sizeHint ( ));
-	qhLayout->addStretch (200);
-	_xOzAngleTextField->setToolTip (QSTR ("Zone de saisie de l'angle de rotation de la transformation dans le plan xOz."));
 
 	QtGroupBox*		yOzGroupBox	= new QtGroupBox (this);
 	qhLayout	= new QHBoxLayout (yOzGroupBox);
@@ -101,15 +86,33 @@ QtVtkExtrinsicTransformationPanel::QtVtkExtrinsicTransformationPanel (QWidget* p
 	yOzGroupBox->setMargin (QtConfiguration::margin);
 	yOzGroupBox->setSpacing (QtConfiguration::spacing);
 	layout->addWidget (yOzGroupBox);
-	angleLabel	= new QLabel (QSTR ("Angle de rotation dans le plan yOz:"), yOzGroupBox);
+	angleLabel	= new QLabel (QSTR ("Angle de rotation autour de Ox :"), yOzGroupBox);
 	qhLayout->addWidget (angleLabel);
 	_yOzAngleTextField	= 	new QtTextField (QString::number (yoz), yOzGroupBox);
 	_yOzAngleTextField->setValidator (new QDoubleValidator (-180., 180., 0, _yOzAngleTextField));
 	qhLayout->addWidget (_yOzAngleTextField);
 	connect (_yOzAngleTextField, SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
 	_yOzAngleTextField->setFixedSize (_yOzAngleTextField->sizeHint ( ));
+	_yOzAngleTextField->setToolTip (QSTR ("Zone de saisie de l'angle de rotation autour de l'axe Ox de la transformation dans le plan yOz."));
+	qhLayout->addWidget (new QLabel (QSTR ("degrés"), yOzGroupBox));
 	qhLayout->addStretch (200);
-	_yOzAngleTextField->setToolTip (QSTR ("Zone de saisie de l'angle de rotation de la transformation dans le plan yOz."));
+
+	QtGroupBox*		xOzGroupBox	= new QtGroupBox (this);
+	qhLayout	= new QHBoxLayout (xOzGroupBox);
+	xOzGroupBox->setLayout (qhLayout);
+	xOzGroupBox->setMargin (QtConfiguration::margin);
+	xOzGroupBox->setSpacing (QtConfiguration::spacing);
+	layout->addWidget (xOzGroupBox);
+	angleLabel	= new QLabel (QSTR ("Angle de rotation autour de Oy :"), xOzGroupBox);
+	qhLayout->addWidget (angleLabel);
+	_xOzAngleTextField	= 	new QtTextField (QString::number (xoz), xOzGroupBox);
+	_xOzAngleTextField->setValidator (new QDoubleValidator (-180., 180., 0, _xOzAngleTextField));
+	qhLayout->addWidget (_xOzAngleTextField);
+	connect (_xOzAngleTextField, SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
+	_xOzAngleTextField->setFixedSize (_xOzAngleTextField->sizeHint ( ));
+	_xOzAngleTextField->setToolTip (QSTR ("Zone de saisie de l'angle de rotation autour de l'axe Oy de la transformation dans le plan xOz."));
+	qhLayout->addWidget (new QLabel (QSTR ("degrés"), xOzGroupBox));
+	qhLayout->addStretch (200);
 	
 	// La translation :
 	_translationPanel	= new Qt3DDataPanel (this, "Translation :", true, "x : ", "y : ", "z : ", dx, -DBL_MAX, DBL_MAX, dy, -DBL_MAX, DBL_MAX, dz, -DBL_MAX, DBL_MAX, false);
@@ -278,13 +281,13 @@ UTF8String QtVtkExtrinsicTransformationPanel::getTransformationDescription ( ) c
 	if (true == translationFirst)
 	{
 		description << "Transformation extrinsèque. Translation de (" << dx << ", " << dy << ", " << dz 
-		            << ") suivie de rotations autour de Oy = " << getXOZAngle ( ) << " degrés, autour de Ox = " << getYOZAngle ( ) 
-		            << " degrés, autour de Oz = " << getXOYAngle ( ) << " degrés.";
+		            << ") suivie de rotations autour de Oz = " << getXOYAngle ( ) << " degrés, autour de Ox = " << getYOZAngle ( ) 
+		            << " degrés, autour de Oy = " << getXOZAngle ( ) << " degrés.";
 	}	// if (true == translationFirst)
 	else
 	{
-		description << "Transformation extrinsèque. Rotations autour de Oy = " << getXOZAngle ( ) << " degrés, autour de Ox = " << getYOZAngle ( ) 
-		            << " degrés, autour de Oz = " << getXOYAngle ( ) << " degrés, suivie d'une translation de (" << dx << ", " << dy << ", " << dz << ")";
+		description << "Transformation extrinsèque. Rotations autour de Oz = " << getXOYAngle ( ) << " degrés, autour de Ox = " << getYOZAngle ( ) 
+		            << " degrés, autour de Oy = " << getXOZAngle ( ) << " degrés, suivie d'une translation de (" << dx << ", " << dy << ", " << dz << ")";
 	}
 	
 	return description;
@@ -342,9 +345,10 @@ QtVtkIntrinsicTransformationPanel::QtVtkIntrinsicTransformationPanel (
 	qhLayout->addWidget (_phiAngleTextField);
 	connect (_phiAngleTextField, SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
 	_phiAngleTextField->setFixedSize (_phiAngleTextField->sizeHint ( ));
-	qhLayout->addStretch (200);
+	qhLayout->addWidget (new QLabel (QSTR ("degrés"), phiGroupBox));
 	_phiAngleTextField->setToolTip (QSTR ("Zone de saisie de l'angle de rotation ") + QtStringHelper::phiMin ( ) + QSTR (" autour de l'axe Oy dans le repère local."));
 	angleLabel->setToolTip (QSTR ("Zone de saisie de l'angle de rotation ") + QtStringHelper::phiMin ( ) + QSTR (" autour de l'axe Oy dans le repère local."));
+	qhLayout->addStretch (200);
 	
 	QtGroupBox*		thetaGroupBox	= new QtGroupBox (this);
 	qhLayout	= new QHBoxLayout (thetaGroupBox);
@@ -359,9 +363,10 @@ QtVtkIntrinsicTransformationPanel::QtVtkIntrinsicTransformationPanel (
 	qhLayout->addWidget (_thetaAngleTextField);
 	connect (_thetaAngleTextField, SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
 	_thetaAngleTextField->setFixedSize (_thetaAngleTextField->sizeHint ( ));
+	qhLayout->addWidget (new QLabel (QSTR ("degrés"), thetaGroupBox));
+	_thetaAngleTextField->setToolTip (QSTR ("Zone de saisie de l'angle de rotation ") + QtStringHelper::thetaMaj ( ) + QSTR (" autour de l'axe O'z' dans le repère local."));
+	angleLabel->setToolTip (QSTR ("Zone de saisie de l'angle de rotation ") + QtStringHelper::thetaMaj ( ) + QSTR (" autour de l'axe O'z' dans le repère local."));
 	qhLayout->addStretch (200);
-	_thetaAngleTextField->setToolTip (QSTR ("Zone de saisie de l'angle de rotation ") + QtStringHelper::thetaMaj ( ) + QSTR (" autour de l'axe Oz dans le repère local."));
-	angleLabel->setToolTip (QSTR ("Zone de saisie de l'angle de rotation ") + QtStringHelper::thetaMaj ( ) + QSTR (" autour de l'axe Oz dans le repère local."));
 	
 	QtGroupBox*		omegaGroupBox	= new QtGroupBox (this);
 	qhLayout	= new QHBoxLayout (omegaGroupBox);
@@ -376,9 +381,10 @@ QtVtkIntrinsicTransformationPanel::QtVtkIntrinsicTransformationPanel (
 	qhLayout->addWidget (_omegaAngleTextField);
 	connect (_omegaAngleTextField, SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
 	_omegaAngleTextField->setFixedSize (_omegaAngleTextField->sizeHint ( ));
+	qhLayout->addWidget (new QLabel (QSTR ("degrés"), omegaGroupBox));
+	_omegaAngleTextField->setToolTip (QSTR ("Zone de saisie de l'angle de rotation ") + QtStringHelper::omegaMin ( ) + QSTR (" autour de l'axe O'x' dans le repère local."));
+	angleLabel->setToolTip (QSTR ("Zone de saisie de l'angle de rotation ") + QtStringHelper::omegaMin ( ) + QSTR (" autour de l'axe O'x' dans le repère local."));
 	qhLayout->addStretch (200);
-	_omegaAngleTextField->setToolTip (QSTR ("Zone de saisie de l'angle de rotation ") + QtStringHelper::omegaMin ( ) + QSTR (" autour de l'axe Ox dans le repère local."));
-	angleLabel->setToolTip (QSTR ("Zone de saisie de l'angle de rotation ") + QtStringHelper::omegaMin ( ) + QSTR (" autour de l'axe Ox dans le repère local."));
 
 	// Afficher les trièdres ?
 	_trihedronCheckBox	= new QCheckBox (QSTR ("Afficher les trièdres"), this);
@@ -917,7 +923,7 @@ void QtVtkTransformationPanel::transformationTypeModifiedCallback ( )
 	{
 		_intrinsicPanel->setVisible (false);
 		_extrinsicPanel->setVisible (true);
-		_contextualHelpLabel->setText (QSTR ("Transformation extrinsèque (dans le repère global) : les axes ne bougent pas."));
+		_contextualHelpLabel->setText (QSTR ("Transformation extrinsèque (dans le repère global) :\nles axes ne bougent pas."));
 		QPixmap	pixmap (":/images/extrinsic.png");
 		QSize	s	= pixmap.size ( );
 		pixmap	= pixmap.scaledToHeight (0.5 * s.height ( ), Qt::SmoothTransformation);
@@ -927,14 +933,15 @@ void QtVtkTransformationPanel::transformationTypeModifiedCallback ( )
 	{
 		_extrinsicPanel->setVisible (false);
 		_intrinsicPanel->setVisible (true);
-		_contextualHelpLabel->setText (QSTR ("Transformation intrinsèque (dans le repère local) : les axes sont soumis à chaque étape de la transformation."));
-		QPixmap	pixmap (":/images/intrinsic.png");
+		_contextualHelpLabel->setText (QSTR ("Transformation intrinsèque (dans le repère local) :\nles axes sont soumis à chaque étape de la transformation."));
+		QPixmap	pixmap (":/images/intrinsic_2.png");
 		QSize	s	= pixmap.size ( );
 		pixmap	= pixmap.scaledToHeight (1.5 * _intrinsicPanel->height ( ), Qt::SmoothTransformation);
 		_imageLabel->setPixmap (pixmap);
 	}	// else if (true == extrinsic)
+	resize (sizeHint ( ));
 
-	emit (transformationChanged ( ));
+	emit (transformationTypeChanged ( ));
 }	// QtVtkTransformationPanel::transformationTypeModifiedCallback
 
 
