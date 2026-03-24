@@ -37,7 +37,7 @@ if ((0 != dlg) && (0 != parent))                                              \
 
 QtVtkViewDefinitionDialog::QtVtkViewDefinitionDialog (
 			QWidget* parent, const string& title, bool modal, const UTF8String& name, const UTF8String& comment,
-			double position [3], double focal [3], double viewUp [3], double roll,
+			double position [3], double focal [3], double viewUp [3], double roll, double viewAngle,
 			vtkRenderer* renderer, const string& helpURL, const string& helpTag)
 	: QDialog (0, true == modal ? (Qt::WindowFlags)(QtConfiguration::modalDialogWFlags | Qt::WindowStaysOnTopHint) : (Qt::WindowFlags)(QtConfiguration::amodalDialogWFlags | Qt::WindowStaysOnTopHint)), _viewDefinitionPanel (0), _closurePanel (0)
 {	
@@ -58,7 +58,7 @@ QtVtkViewDefinitionDialog::QtVtkViewDefinitionDialog (
 	frame->setLayout (frameLayout);
 	frame->setMargin (QtConfiguration::margin);
 	frame->setSpacing (QtConfiguration::spacing);
-	_viewDefinitionPanel	= new QtVtkViewDefinitionPanel (frame, title, name, comment, position, focal, viewUp, roll, renderer);
+	_viewDefinitionPanel	= new QtVtkViewDefinitionPanel (frame, title, name, comment, position, focal, viewUp, roll, viewAngle, renderer);
 	_viewDefinitionPanel->adjustSize ( );
 	frameLayout->addWidget (_viewDefinitionPanel);
 
@@ -142,6 +142,13 @@ double QtVtkViewDefinitionDialog::getRoll ( ) const
 	assert ((0 != _viewDefinitionPanel) && "QtVtkViewDefinitionDialog::getRoll : null view definition panel.");
 	return _viewDefinitionPanel->getRoll ( );
 }	// QtVtkViewDefinitionDialog::getRoll
+
+
+double QtVtkViewDefinitionDialog::getViewAngle ( ) const
+{
+	assert ((0 != _viewDefinitionPanel) && "QtVtkViewDefinitionDialog::getViewAngle : null view definition panel.");
+	return _viewDefinitionPanel->getViewAngle ( );
+}	// QtVtkViewDefinitionDialog::getViewAngle
 
 
 QPushButton* QtVtkViewDefinitionDialog::getApplyButton ( ) const

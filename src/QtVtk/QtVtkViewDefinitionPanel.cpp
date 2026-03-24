@@ -34,8 +34,8 @@ USE_ENCODING_AUTODETECTION
 
 
 QtVtkViewDefinitionPanel::QtVtkViewDefinitionPanel (QWidget* parent, const string& appTitle, const UTF8String& name, const UTF8String& comment,
-                                                    double position [3], double focal [3], double viewUp [3],double roll, vtkRenderer* renderer)
-	: QWidget (parent), _appTitle (appTitle), _positionPanel (0), _focalPanel (0), _rollTextField (0), _renderer (renderer), _modified (false), _updated (true)
+                                                    double position [3], double focal [3], double viewUp [3],double roll, double viewAngle, vtkRenderer* renderer)
+	: QWidget (parent), _appTitle (appTitle), _positionPanel (0), _focalPanel (0), _rollTextField (0), _viewAngleTextField (0), _renderer (renderer), _modified (false), _updated (true)
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -43,7 +43,8 @@ QtVtkViewDefinitionPanel::QtVtkViewDefinitionPanel (QWidget* parent, const strin
 		_initialFocal [i]		= _focal [i]	= focal [i];
 		_initialViewUp [i]		= _viewUp [i]	= viewUp [i];
 	}	// for (int i = 0; i < 3; i++)
-	_initialRoll	= _roll	= roll;
+	_initialRoll		= _roll			= roll;
+	_initialViewAngle	= _viewAngle	= viewAngle;
 
 	// Creation de l'ihm :
 	QVBoxLayout*	layout	= new QVBoxLayout (this);
@@ -120,7 +121,7 @@ QtVtkViewDefinitionPanel::QtVtkViewDefinitionPanel (QWidget* parent, const strin
 	label->setFixedSize (label->sizeHint ( ));
 	rollLayout->addWidget (label);
 	_rollTextField		= new QtTextField (rollGroupBox);
-	_rollTextField->setVisibleColumns (4);
+	_rollTextField->setVisibleColumns (8);
 	_rollTextField->setMaxLength (4);
 	_rollTextField->setFixedSize (_rollTextField->sizeHint ( ));
 	_rollTextField->setMaximumSize (_rollTextField->sizeHint ( ));
@@ -135,7 +136,37 @@ QtVtkViewDefinitionPanel::QtVtkViewDefinitionPanel (QWidget* parent, const strin
 	rollGroupBox->adjustSize ( );
 	layout->addWidget (rollGroupBox);
 
+	// Angle d'ouverture :
+	UTF8String		tooltip ("L'angle d’ouverture vertical définit la hauteur du cône de vision.\nUn angle plus grand permet de voir une plus grande portion de la scène (effet \"grand angle\"),\ntandis qu’un angle plus petit donne un effet de zoom (champ de vision plus étroit).\nLa valeur par défaut est de 30°.", charset);
+	QtGroupBox*		viewAngleGroupBox	= new QtGroupBox ("Angle d'ouverture", this);
+	QHBoxLayout*	viewAngleLayout		= new QHBoxLayout (viewAngleGroupBox);
+	viewAngleGroupBox->setLayout (viewAngleLayout);
+	viewAngleGroupBox->setSpacing (QtConfiguration::spacing);
+	viewAngleGroupBox->setMargin (QtConfiguration::margin);
+	viewAngleLayout->setSizeConstraint (QLayout::SetMinimumSize);
+	label	= new QLabel ("Angle :", viewAngleGroupBox);
+	label->setFixedSize (label->sizeHint ( ));
+	label->setToolTip (UTF8TOQSTRING (tooltip));
+	viewAngleLayout->addWidget (label);
+	_viewAngleTextField		= new QtTextField (viewAngleGroupBox);
+	_viewAngleTextField->setVisibleColumns (8);
+	_viewAngleTextField->setMaxLength (4);
+	_viewAngleTextField->setFixedSize (_viewAngleTextField->sizeHint ( ));
+	_viewAngleTextField->setMaximumSize (_viewAngleTextField->sizeHint ( ));
+	_viewAngleTextField->setText (QString::number (viewAngle));	
+	_viewAngleTextField->setValidator (new QDoubleValidator (0., 180., 4, _viewAngleTextField));
+	_viewAngleTextField->setToolTip (UTF8TOQSTRING (tooltip));
+	connect (_viewAngleTextField, SIGNAL (returnPressed ( )), this, SLOT (viewFieldValidatedCallback ( )));
+	connect (_viewAngleTextField, SIGNAL (textChanged (const QString&)), this, SLOT (viewFieldModifiedCallback (const QString&)));
+	viewAngleLayout->addWidget (_viewAngleTextField);
+	label	= new QLabel (QSTR ("(Domaine : 0 à 180 degrés)"), viewAngleGroupBox);
+	label->setToolTip (UTF8TOQSTRING (tooltip));
+	label->setMinimumSize (label->sizeHint ( ));
+	viewAngleLayout->addWidget (label);
+	viewAngleGroupBox->adjustSize ( );
+	layout->addWidget (viewAngleGroupBox);
 	layout->activate ( );
+
 	setMinimumSize (layout->sizeHint ( ));
 }	// QtVtkViewDefinitionPanel::QtVtkViewDefinitionPanel
 
@@ -196,6 +227,14 @@ void QtVtkViewDefinitionPanel::setRoll (double roll)
 }	// QtVtkViewDefinitionPanel::setRoll
 
 
+void QtVtkViewDefinitionPanel::setViewAngle (double angle)
+{
+	assert ((0 != _viewAngleTextField) && "QtVtkViewDefinitionPanel::setViewAngle : null viewAngle text field.");
+	_viewAngleTextField->setText (QString::number (angle));
+	_updated	= false;
+}	// QtVtkViewDefinitionPanel::setViewAngle
+
+
 void QtVtkViewDefinitionPanel::updateData ( )
 {
 	bool	modified	= false;
@@ -237,6 +276,12 @@ void QtVtkViewDefinitionPanel::updateData ( )
 		_roll		= getRoll ( );
 		modified	= true;
 	}	// if (_roll != getRoll ( ))	
+
+	if (_viewAngle != getViewAngle ( ))
+	{
+		_viewAngle		= getViewAngle ( );
+		modified	= true;
+	}	// if (_viewAngle != getViewAngle ( ))
 
 	if (false == modified)
 		return;
@@ -295,6 +340,14 @@ double QtVtkViewDefinitionPanel::getRoll ( ) const
 }	// QtVtkViewDefinitionPanel::getRoll
 
 
+double QtVtkViewDefinitionPanel::getViewAngle ( ) const
+{
+	assert ((0 != _viewAngleTextField) && "QtVtkViewDefinitionPanel::getViewAngle : null viewAngle text field.");
+	bool	ok	= true;
+	return _viewAngleTextField->text ( ).toDouble (&ok);
+}	// QtVtkViewDefinitionPanel::getViewAngle
+
+
 void QtVtkViewDefinitionPanel::apply ( )
 {
 	if (true == isUpdated ( ))
@@ -309,7 +362,8 @@ void QtVtkViewDefinitionPanel::apply ( )
 	double	position [3]	= { 0., 0., 0. };
 	double	focal [3]		= { 0., 0., 0. };
 	double	viewUp [3]		= { 0., 0., 0. };
-	double	roll	= getRoll ( );
+	double	roll			= getRoll ( );
+	double	viewAngle		= getViewAngle ( );
 	getPosition (position);
 	getFocalPoint (focal);
 	getViewUp (viewUp);
@@ -317,9 +371,9 @@ void QtVtkViewDefinitionPanel::apply ( )
 	camera->SetFocalPoint (focal);
 	camera->SetViewUp (viewUp);
 	camera->SetRoll (roll);
-	// ResetCameraClippingRange : en son absence il y a de bonnes chances
-	// que certains objets ne soient plus affiches bien qu'ils devraient etre
-	// visibles.
+	camera->SetViewAngle (viewAngle);
+	// ResetCameraClippingRange : en son absence il y a de bonnes chances que
+	// certains objets ne soient plus affichés bien qu'ils devraient être visibles.
 	_renderer->ResetCameraClippingRange ( );
 	if (0 != _renderer->GetRenderWindow ( ))
 		_renderer->GetRenderWindow ( )->Render ( );
@@ -337,6 +391,7 @@ void QtVtkViewDefinitionPanel::reset ( )
 	setFocalPoint (_initialFocal);
 	setViewUp (_initialViewUp);
 	setRoll (_initialRoll);
+	setViewAngle (_initialViewAngle);
 	apply ( );
 	setModified (false);
 }	// QtVtkViewDefinitionPanel::reset

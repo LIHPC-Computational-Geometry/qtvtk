@@ -32,7 +32,7 @@ USE_ENCODING_AUTODETECTION
 // ======================================================================================================================================
 
 QtVtkViewPointToolButton::VtkViewPoint::VtkViewPoint ( )
-	: name ( ), comment ( ), roll (0.)
+	: name ( ), comment ( ), roll (0.), viewAngle (30.)
 {
 	memset (position, 0, 3 * sizeof (double));
 	memset (focalPoint, 0, 3 * sizeof (double));
@@ -41,7 +41,7 @@ QtVtkViewPointToolButton::VtkViewPoint::VtkViewPoint ( )
 
 
 QtVtkViewPointToolButton::VtkViewPoint::VtkViewPoint (const QtVtkViewPointToolButton::VtkViewPoint& vp)
-	: name (vp.name), comment (vp.comment), roll (vp.roll)
+	: name (vp.name), comment (vp.comment), roll (vp.roll), viewAngle (vp.viewAngle)
 {
 	memcpy (position, vp.position, 3 * sizeof (double));
 	memcpy (focalPoint, vp.focalPoint, 3 * sizeof (double));
@@ -54,6 +54,7 @@ QtVtkViewPointToolButton::VtkViewPoint& QtVtkViewPointToolButton::VtkViewPoint::
 	name		= vp.name;
 	comment		= vp.comment;
 	roll		= vp.roll;
+	viewAngle	= vp.viewAngle;
 	memcpy (position, vp.position, 3 * sizeof (double));
 	memcpy (focalPoint, vp.focalPoint, 3 * sizeof (double));
 	memcpy (viewUp, vp.viewUp, 3 * sizeof (double));
@@ -65,6 +66,7 @@ QtVtkViewPointToolButton::VtkViewPoint& QtVtkViewPointToolButton::VtkViewPoint::
 QtVtkViewPointToolButton::VtkViewPoint& QtVtkViewPointToolButton::VtkViewPoint::operator = (const vtkCamera& camera)
 {
 	roll		= ((vtkCamera&)camera).GetRoll ( );
+	viewAngle	= ((vtkCamera&)camera).GetViewAngle ( );
 	memcpy (position, ((vtkCamera&)camera).GetPosition ( ), 3 * sizeof (double));
 	memcpy (focalPoint, ((vtkCamera&)camera).GetFocalPoint ( ), 3 * sizeof (double));
 	memcpy (viewUp, ((vtkCamera&)camera).GetViewUp ( ), 3 * sizeof (double));
@@ -89,10 +91,12 @@ Section* QtVtkViewPointToolButton::viewPointToSection (const QtVtkViewPointToolB
 	DoubleTripletNamedValue*	focalPoint	= new DoubleTripletNamedValue (UTF8String ("focalPoint", charset), vp.focalPoint [0], vp.focalPoint [1], vp.focalPoint [2]);
 	DoubleTripletNamedValue*	viewUp		= new DoubleTripletNamedValue (UTF8String ("viewUp", charset), vp.viewUp [0], vp.viewUp [1], vp.viewUp [2]);
 	DoubleNamedValue*			roll		= new DoubleNamedValue (UTF8String ("roll", charset), vp.roll);
+	DoubleNamedValue*			viewAngle	= new DoubleNamedValue (UTF8String ("viewAngle", charset), vp.viewAngle);
 	section->addNamedValue (position);
 	section->addNamedValue (focalPoint);
 	section->addNamedValue (viewUp);
 	section->addNamedValue (roll);
+	section->addNamedValue (viewAngle);
 	
 	return section;
 }	// QtVtkViewPointToolButton::viewPointToSection
@@ -155,7 +159,17 @@ QtVtkViewPointToolButton::VtkViewPoint QtVtkViewPointToolButton::sectionToViewPo
 	catch (...)
 	{
 	}
-	
+
+	try
+	{
+		DoubleNamedValue*	va	= dynamic_cast<DoubleNamedValue*>(&(section.getNamedValue (UTF8String ("viewAngle", charset))));
+		if (0 != va)
+			vp.viewAngle	= va->getValue ( );
+	}
+	catch (...)
+	{
+	}
+
 	return vp;
 }	// QtVtkViewPointToolButton::sectionToViewPoint
 	
@@ -305,6 +319,7 @@ void QtVtkViewPointToolButton::applyViewPointCallback ( )
 	_camera->SetFocalPoint (_viewPoint.focalPoint);
 	_camera->SetViewUp (_viewPoint.viewUp);
 	_camera->SetRoll (_viewPoint.roll);
+	_camera->SetViewAngle (_viewPoint.viewAngle);
 
 	if (0 != _renderer)
 	{
@@ -332,7 +347,7 @@ void QtVtkViewPointToolButton::editViewPointCallback ( )
 		dlgTitle << "Paramètres de définition de la vue.";
 
 		QtVtkViewPointToolButton::VtkViewPoint	vp	= getViewPoint ( );
-		QtVtkViewDefinitionDialog				viewDialog (this, dlgTitle.utf8 ( ).c_str ( ), true, vp.name, vp.comment, vp.position, vp.focalPoint, vp.viewUp, vp.roll, _renderer);
+		QtVtkViewDefinitionDialog				viewDialog (this, dlgTitle.utf8 ( ).c_str ( ), true, vp.name, vp.comment, vp.position, vp.focalPoint, vp.viewUp, vp.roll, vp.viewAngle, _renderer);
 		int	retVal	= viewDialog.exec ( );
 
 		if (0 == retVal)
@@ -341,12 +356,13 @@ void QtVtkViewPointToolButton::editViewPointCallback ( )
 			return;
 		}
 
-		vp.name		= viewDialog.getName ( );
-		vp.comment	= viewDialog.getComment ( );
+		vp.name			= viewDialog.getName ( );
+		vp.comment		= viewDialog.getComment ( );
 		viewDialog.getPosition (vp.position);
 		viewDialog.getFocalPoint (vp.focalPoint);
 		viewDialog.getViewUp (vp.viewUp);
-		vp.roll		= viewDialog.getRoll ( );
+		vp.roll			= viewDialog.getRoll ( );
+		vp.viewAngle	= viewDialog.getViewAngle ( );
 		
 		UTF8String	message (charset);
 		message << "Paramètres de la vues modifiés. "
@@ -356,7 +372,8 @@ void QtVtkViewPointToolButton::editViewPointCallback ( )
 				<< vp.focalPoint [0] << ", " << vp.focalPoint [1] << ", " << vp.focalPoint [2]
 				<< ". Direction vers le haut : "
 				<< vp.viewUp [0] << ", " << vp.viewUp [1] << ", " << vp.viewUp [2]
-				<< " Roulis : " << vp.roll << " degrés.";
+				<< ". Roulis : " << vp.roll << " degrés"
+				<< ". Angle d'ouverture : " << vp.viewAngle << " degrés.";
 		cout << message << endl;
 		setViewPoint (vp);
 	}
