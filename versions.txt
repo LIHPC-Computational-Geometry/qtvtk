@@ -1,5 +1,12 @@
 A FAIRE : tester le vtkIntersectionPolyDataFilter de VTK 7, voir si de base il propose les services attendus (Inner, ...).
 
+Version 8.10.0 : 24/03/26
+===============
+
+Correctif points de vue concernant la gestion du zoom. La vue pouvait être bonne, à l'éloignement près. Bogue non reproductible d'une station
+à l'autre.
+
+
 Version 8.9.1 : 21/01/26
 ===============
 

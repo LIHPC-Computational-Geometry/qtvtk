@@ -30,12 +30,13 @@ class QtVtkViewDefinitionDialog : public QDialog
 	 * @param		focale initiale (x, y, z) de la caméra.
 	 * @param		direction vers le haut de la caméra
 	 * @param		roulis (angle de la caméra par rapport à sa direction (axe position-focale)). En degrés.
+	 * @param		angle d'ouverture de la vue (joue sur le zoom). En degrés, de 0 à 180°, valeur par défaut de 30°.
 	 * @param		Renderer utilisant la caméra à piloter si non nul (GetActiveCamera sur le renderer est utilisé).
 	 * @param		URL de l'aide
 	 * @param		Balise de l'aide
 	 */
 	QtVtkViewDefinitionDialog (QWidget* parent, const IN_STD string& title, bool modal, const TkUtil::UTF8String& name, const TkUtil::UTF8String& comment, 
-	                           double position [3], double focal [3], double viewUp [3], double roll, vtkRenderer* renderer, 
+	                           double position [3], double focal [3], double viewUp [3], double roll, double viewAngle, vtkRenderer* renderer, 
 	                           const IN_STD string& helpURL ="", const IN_STD string& helpTag = "");
 
 	/** Destructeur. */
@@ -58,6 +59,9 @@ class QtVtkViewDefinitionDialog : public QDialog
 
 	/** @return			le roulis de la caméra. */
 	virtual double getRoll ( ) const;
+
+	/** @param			angle d'ouverture de la vue (joue sur le zoom). */
+	virtual double getViewAngle ( ) const;
 
 	/** @return			le bouton "Appliquer" de la boite de dialogue. */
 	virtual QPushButton* getApplyButton ( ) const;

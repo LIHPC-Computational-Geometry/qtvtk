@@ -17,6 +17,8 @@
  * Panneau Qt permettant de définir interactivement la vue d'un  théâtre. Cette vue est définie par l'emplacement et la focale de la caméra.
  * Ce panneau peut piloter, optionnellement, une caméra VTK. La caméra est mise à jour avec les derniers paramètres saisis lorsque 
  * l'utilisateur effectue un retour chariot dans un champ numérique.
+ * 
+ * @warning			La gestion du mode de projection (perspective/parallèle) n'est pas assurée.
  */
 class QtVtkViewDefinitionPanel : public QWidget 
 {
@@ -33,10 +35,11 @@ class QtVtkViewDefinitionPanel : public QWidget
 	 * @param		focale initiale (x, y, z) de la caméra.
 	 * @param		direction vers le haut (dx, dy, dz) de la caméra.
 	 * @param		roulis (angle de la caméra par rapport à sa direction (axe position-focale)). En degrés.
+	 * @param		angle d'ouverture de la vue (joue sur le zoom). En degrés, de 0 à 180°, valeur par défaut de 30°.
 	 * @param		Renderer utilisant la caméra à piloter si non nul (GetActiveCamera sur le renderer est utilisé).
 	 */
 	QtVtkViewDefinitionPanel (QWidget* parent, const IN_STD string& appTitle, const TkUtil::UTF8String& name, const TkUtil::UTF8String& comment,
-	                          double position [3], double focal [3], double viewUp [3], double roll, vtkRenderer* renderer);
+	                          double position [3], double focal [3], double viewUp [3], double roll, double viewAngle, vtkRenderer* renderer);
 
 	/** Destructeur. */
 	virtual ~QtVtkViewDefinitionPanel ( );
@@ -58,6 +61,9 @@ class QtVtkViewDefinitionPanel : public QWidget
 
 	/** @return			le roulis de la caméra. */
 	virtual double getRoll ( ) const;
+
+	/** @param			angle d'ouverture de la vue (joue sur le zoom). */
+	virtual double getViewAngle ( ) const;
 
 	/** Applique les modification à l'éventuelle caméra. Affecte true à _updated. */
 	virtual void apply ( );
@@ -93,6 +99,11 @@ class QtVtkViewDefinitionPanel : public QWidget
 	 * @param			Nouveau roulis de la caméra.
 	 */
 	virtual void setRoll (double roll);
+
+	/**
+	 * @param			Nouvel angle d'ouverture de la caméra (domaine : 0 - 180°).
+	 */
+	virtual void setViewAngle (double viewAngle);
 
 	/**
 	 * Affecte le caractère "modifié" (depuis sa construction) à cette instance.
@@ -160,6 +171,9 @@ class QtVtkViewDefinitionPanel : public QWidget
 	/** Le champ de définition du roulis. */
 	QtTextField*						_rollTextField;
 
+	/** Le champ de définition de l'angle d'ouverture. */
+	QtTextField*						_viewAngleTextField;
+
 	/** Le renderer utilisant la caméra pilotée. */
 	vtkRenderer*						_renderer;
 
@@ -175,6 +189,9 @@ class QtVtkViewDefinitionPanel : public QWidget
 	/** La valeur initiale du roulis. */
 	double								_initialRoll;
 
+	/** La valeur initiale de l'angle d'ouverture. */
+	double								_initialViewAngle;
+
 	/** La dernière position. */
 	double								_position [3];
 
@@ -184,8 +201,11 @@ class QtVtkViewDefinitionPanel : public QWidget
 	/** La direction vers le haut. */
 	double 								_viewUp [3];
 
-	/** La dernère valeur du roulis. */
+	/** La dernière valeur du roulis. */
 	double								_roll;
+
+	/** La dernière valeur de l'angle d'ouverture. */
+	double								_viewAngle;
 
 	/** Les paramètres ont ils été modifiés par l'utilisateur ? */
 	bool								_modified;

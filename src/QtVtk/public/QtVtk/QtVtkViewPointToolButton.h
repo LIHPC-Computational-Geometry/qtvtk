@@ -43,6 +43,9 @@ class QtVtkViewPointToolButton : public QToolButton
 		
 		/** Roulis (rotation autour de l'axe de visée). */
 		double					roll;
+		
+		/** Hauteur angulaire de la vue (joue sur le zoom). En degrés, de 0 à 180°, valeur par défaut de 30°. */
+		double					viewAngle;
 	};	// struct VtkViewPoint
 
 	static Preferences::Section* viewPointToSection (const VtkViewPoint& viewpoint);
