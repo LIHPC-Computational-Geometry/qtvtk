@@ -1,5 +1,15 @@
 A FAIRE : tester le vtkIntersectionPolyDataFilter de VTK 7, voir si de base il propose les services attendus (Inner, ...).
 
+Version 8.11.0 : 12/06/26
+===============
+
+Utilisation de la classe vtkTransformHelper de VtkContrib.
+
+Classe QtVtkTransformationPanel : correctif centre/translation dans le cas des transformations intrinsèques.
+
+Test test_hardware_selection pour la sélection interactive de données au premier plan.
+
+
 Version 8.10.0 : 24/03/26
 ===============
 
