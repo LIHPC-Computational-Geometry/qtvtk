@@ -46,11 +46,11 @@ QtVtkExtrinsicTransformationPanel::QtVtkExtrinsicTransformationPanel (QWidget* p
 
 	// Creation de l'ihm :
 	QVBoxLayout*	layout	= new QVBoxLayout (this);
-	layout->setSpacing (QtConfiguration::spacing);
+	layout->setSpacing (QtVtkTransformationPanel::spacing);
 #ifdef QT_5
-	layout->setMargin (QtConfiguration::margin);
+	layout->setMargin (QtVtkTransformationPanel::margin);
 #else	// QT_5
-	layout->setContentsMargins (QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin);
+	layout->setContentsMargins (QtVtkTransformationPanel::margin, QtVtkTransformationPanel::margin, QtVtkTransformationPanel::margin, QtVtkTransformationPanel::margin);
 #endif	// QT_5
 	layout->setSizeConstraint (QLayout::SetMinimumSize);
 
@@ -66,8 +66,10 @@ QtVtkExtrinsicTransformationPanel::QtVtkExtrinsicTransformationPanel (QWidget* p
 	QtGroupBox*		xOyGroupBox	= new QtGroupBox (this);
 	QHBoxLayout*	qhLayout	= new QHBoxLayout (xOyGroupBox);
 	xOyGroupBox->setLayout (qhLayout);
-	xOyGroupBox->setMargin (QtConfiguration::margin);
-	xOyGroupBox->setSpacing (QtConfiguration::spacing);
+//	xOyGroupBox->setMargin (QtVtkTransformationPanel::margin);
+//	xOyGroupBox->setSpacing (QtVtkTransformationPanel::spacing);
+	qhLayout->setContentsMargins (QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin);
+	qhLayout->setSpacing (QtConfiguration::spacing);
 	layout->addWidget (xOyGroupBox);
 	QLabel*	angleLabel	= new QLabel (QSTR ("Angle de rotation autour de Oz :"), xOyGroupBox);
 	qhLayout->addWidget (angleLabel);
@@ -83,8 +85,10 @@ QtVtkExtrinsicTransformationPanel::QtVtkExtrinsicTransformationPanel (QWidget* p
 	QtGroupBox*		yOzGroupBox	= new QtGroupBox (this);
 	qhLayout	= new QHBoxLayout (yOzGroupBox);
 	yOzGroupBox->setLayout (qhLayout);
-	yOzGroupBox->setMargin (QtConfiguration::margin);
-	yOzGroupBox->setSpacing (QtConfiguration::spacing);
+//	yOzGroupBox->setMargin (QtVtkTransformationPanel::margin);
+//	yOzGroupBox->setSpacing (QtVtkTransformationPanel::spacing);
+	qhLayout->setContentsMargins (QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin);
+	qhLayout->setSpacing (QtConfiguration::spacing);
 	layout->addWidget (yOzGroupBox);
 	angleLabel	= new QLabel (QSTR ("Angle de rotation autour de Ox :"), yOzGroupBox);
 	qhLayout->addWidget (angleLabel);
@@ -100,8 +104,10 @@ QtVtkExtrinsicTransformationPanel::QtVtkExtrinsicTransformationPanel (QWidget* p
 	QtGroupBox*		xOzGroupBox	= new QtGroupBox (this);
 	qhLayout	= new QHBoxLayout (xOzGroupBox);
 	xOzGroupBox->setLayout (qhLayout);
-	xOzGroupBox->setMargin (QtConfiguration::margin);
-	xOzGroupBox->setSpacing (QtConfiguration::spacing);
+//	xOzGroupBox->setMargin (QtVtkTransformationPanel::margin);
+//	xOzGroupBox->setSpacing (QtVtkTransformationPanel::spacing);
+	qhLayout->setContentsMargins (QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin);
+	qhLayout->setSpacing (QtConfiguration::spacing);
 	layout->addWidget (xOzGroupBox);
 	angleLabel	= new QLabel (QSTR ("Angle de rotation autour de Oy :"), xOzGroupBox);
 	qhLayout->addWidget (angleLabel);
@@ -116,6 +122,11 @@ QtVtkExtrinsicTransformationPanel::QtVtkExtrinsicTransformationPanel (QWidget* p
 	
 	// La translation :
 	_translationPanel	= new Qt3DDataPanel (this, "Translation :", true, "x : ", "y : ", "z : ", dx, -DBL_MAX, DBL_MAX, dy, -DBL_MAX, DBL_MAX, dz, -DBL_MAX, DBL_MAX, false);
+	if (0 != _translationPanel->layout ( ))
+	{
+		_translationPanel->layout ( )->setContentsMargins (QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin);
+		_translationPanel->layout ( )->setSpacing (QtVtkTransformationPanel::spacing);
+	}
 	connect (_translationPanel->getXTextField ( ), SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
 	connect (_translationPanel->getYTextField ( ), SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
 	connect (_translationPanel->getZTextField ( ), SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
@@ -305,8 +316,8 @@ void QtVtkExtrinsicTransformationPanel::transformationModifiedCallback ( )
 // ===========================================================================
 
 QtVtkIntrinsicTransformationPanel::QtVtkIntrinsicTransformationPanel (
-	QWidget* parent, const UTF8String& appTitle, vtkRenderer* renderer, vtkFloatingPointType bounds [6], bool displayTrihedrons, double x, double y, double z, double phi, double theta, double omega)
-	: QWidget (parent), _appTitle (appTitle), _centerPanel (0), _phiAngleTextField (0), _thetaAngleTextField (0), _omegaAngleTextField (0),
+	QWidget* parent, const IN_UTIL UTF8String& appTitle, vtkRenderer* renderer, vtkFloatingPointType bounds [6], bool displayTrihedrons, double phi, double theta, double omega, bool translationFirst, double dx, double dy, double dz)
+	: QWidget (parent), _appTitle (appTitle), _translationFirstCheckBox (0), _translationPanel (0), _phiAngleTextField (0), _thetaAngleTextField (0), _omegaAngleTextField (0),
 	  _trihedronCheckBox (0), _globalTrihedron (0), _localTrihedron (0), _renderer (renderer)
 {
 	memcpy (_bounds, bounds, 6 * sizeof (vtkFloatingPointType));
@@ -315,28 +326,43 @@ QtVtkIntrinsicTransformationPanel::QtVtkIntrinsicTransformationPanel (
 
 	// Creation de l'ihm :
 	QVBoxLayout*	layout	= new QVBoxLayout (this);
-	layout->setSpacing (QtConfiguration::spacing);
+	layout->setSpacing (QtVtkTransformationPanel::spacing);
 #ifdef QT_5
-	layout->setMargin (QtConfiguration::margin);
+	layout->setMargin (QtVtkTransformationPanel::margin);
 #else	// QT_5
-	layout->setContentsMargins (QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin);
+	layout->setContentsMargins (QtVtkTransformationPanel::margin, QtVtkTransformationPanel::margin, QtVtkTransformationPanel::margin, QtVtkTransformationPanel::margin);
 #endif	// QT_5
 	layout->setSizeConstraint (QLayout::SetMinimumSize);
 
-	// La centre :
-	_centerPanel	= new Qt3DDataPanel (this, "Centre :", true, "x : ", "y : ", "z : ", x, -DBL_MAX, DBL_MAX, y, -DBL_MAX, DBL_MAX, z, -DBL_MAX, DBL_MAX, false);
-	connect (_centerPanel->getXTextField ( ), SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
-	connect (_centerPanel->getYTextField ( ), SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
-	connect (_centerPanel->getZTextField ( ), SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
-	layout->addWidget (_centerPanel);
-	_centerPanel->setToolTip (QSTR ("Zone de saisie duu centre de la transformation intrinsèque."));
+	// Translation en premier ? :
+	_translationFirstCheckBox	= new QCheckBox (QSTR ("Translation en premier"), this);
+	connect (_translationFirstCheckBox, SIGNAL(clicked ( )), this, SLOT(transformationModifiedCallback ( )));
+	QString	tip (QSTR ("Coché, la translation est effectuée avant les rotations."));
+	_translationFirstCheckBox->setChecked (translationFirst);
+	_translationFirstCheckBox->setToolTip (tip);
+	layout->addWidget (_translationFirstCheckBox);
+
+	// La translation :
+	_translationPanel	= new Qt3DDataPanel (this, "Translation :", true, "x : ", "y : ", "z : ", dx, -DBL_MAX, DBL_MAX, dy, -DBL_MAX, DBL_MAX, dz, -DBL_MAX, DBL_MAX, false);
+	if (0 != _translationPanel->layout ( ))
+	{
+		_translationPanel->layout ( )->setContentsMargins (QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin);
+		_translationPanel->layout ( )->setSpacing (QtVtkTransformationPanel::spacing);
+	}
+	connect (_translationPanel->getXTextField ( ), SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
+	connect (_translationPanel->getYTextField ( ), SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
+	connect (_translationPanel->getZTextField ( ), SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
+	layout->addWidget (_translationPanel);
+	_translationPanel->setToolTip (QSTR ("Zone de saisie de la translation de la transformation intrinsèque."));
 
 	// Les rotations :
 	QtGroupBox*		phiGroupBox	= new QtGroupBox (this);
 	QHBoxLayout*	qhLayout	= new QHBoxLayout (phiGroupBox);
 	phiGroupBox->setLayout (qhLayout);
-	phiGroupBox->setMargin (QtConfiguration::margin);
-	phiGroupBox->setSpacing (QtConfiguration::spacing);
+//	phiGroupBox->setMargin (QtVtkTransformationPanel::margin);
+//	phiGroupBox->setSpacing (QtVtkTransformationPanel::spacing);
+	qhLayout->setContentsMargins (QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin);
+	qhLayout->setSpacing (QtConfiguration::spacing);
 	layout->addWidget (phiGroupBox);
 	QLabel*	angleLabel	= new QLabel (QSTR ("Angle ") + QtStringHelper::phiMin ( ), phiGroupBox);
 	qhLayout->addWidget (angleLabel);
@@ -353,8 +379,10 @@ QtVtkIntrinsicTransformationPanel::QtVtkIntrinsicTransformationPanel (
 	QtGroupBox*		thetaGroupBox	= new QtGroupBox (this);
 	qhLayout	= new QHBoxLayout (thetaGroupBox);
 	thetaGroupBox->setLayout (qhLayout);
-	thetaGroupBox->setMargin (QtConfiguration::margin);
-	thetaGroupBox->setSpacing (QtConfiguration::spacing);
+//	thetaGroupBox->setMargin (QtVtkTransformationPanel::margin);
+//	thetaGroupBox->setSpacing (QtVtkTransformationPanel::spacing);
+	qhLayout->setContentsMargins (QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin);
+	qhLayout->setSpacing (QtConfiguration::spacing);
 	layout->addWidget (thetaGroupBox);
 	angleLabel	= new QLabel (QSTR ("Angle ") + QtStringHelper::thetaMaj ( ), thetaGroupBox);
 	qhLayout->addWidget (angleLabel);
@@ -371,8 +399,10 @@ QtVtkIntrinsicTransformationPanel::QtVtkIntrinsicTransformationPanel (
 	QtGroupBox*		omegaGroupBox	= new QtGroupBox (this);
 	qhLayout	= new QHBoxLayout (omegaGroupBox);
 	omegaGroupBox->setLayout (qhLayout);
-	omegaGroupBox->setMargin (QtConfiguration::margin);
-	omegaGroupBox->setSpacing (QtConfiguration::spacing);
+//	omegaGroupBox->setMargin (QtVtkTransformationPanel::margin);
+//	omegaGroupBox->setSpacing (QtVtkTransformationPanel::spacing);
+	qhLayout->setContentsMargins (QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin);
+	qhLayout->setSpacing (QtConfiguration::spacing);
 	layout->addWidget (omegaGroupBox);
 	angleLabel	= new QLabel (QSTR ("Angle ") + QtStringHelper::omegaMaj ( ), omegaGroupBox);
 	qhLayout->addWidget (angleLabel);
@@ -390,7 +420,7 @@ QtVtkIntrinsicTransformationPanel::QtVtkIntrinsicTransformationPanel (
 	_trihedronCheckBox	= new QCheckBox (QSTR ("Afficher les trièdres"), this);
 	connect (_trihedronCheckBox, SIGNAL(clicked ( )), this, SLOT(displayTrihedronsCallback ( )));
 	_trihedronCheckBox->setChecked (displayTrihedrons);
-	_trihedronCheckBox->setToolTip (QSTR ("Cochée des trièdres montrant le repère avant et après transformation seront affichés dans la fenêtre graphhique."));
+	_trihedronCheckBox->setToolTip (QSTR ("Cochée des trièdres montrant le repère avant et après transformation seront affichés dans la fenêtre graphique."));
 	layout->addWidget (_trihedronCheckBox);
 	
 	layout->activate ( );
@@ -416,24 +446,6 @@ QtVtkIntrinsicTransformationPanel::~QtVtkIntrinsicTransformationPanel ( )
 	assert (0 != _trihedronCheckBox);
 	_trihedronCheckBox->setChecked (false);
 }	// QtVtkIntrinsicTransformationPanel::~QtVtkIntrinsicTransformationPanel
-
-
-void QtVtkIntrinsicTransformationPanel::setCenter (double x, double y, double z)
-{
-	assert ((0 != _centerPanel) && "QtVtkIntrinsicTransformationPanel::setTranslation : null translation panel.");
-	_centerPanel->setX (x);
-	_centerPanel->setY (y);
-	_centerPanel->setZ (z);
-}	// QtVtkIntrinsicTransformationPanel::setCenter
-
-
-void QtVtkIntrinsicTransformationPanel::getCenter (double& x, double& y, double& z) const
-{
-	assert ((0 != _centerPanel) && "QtVtkIntrinsicTransformationPanel::getCenter : null translation panel.");
-	x	= _centerPanel->getX ( );
-	y	= _centerPanel->getY ( );
-	z	= _centerPanel->getZ ( );
-}	// QtVtkIntrinsicTransformationPanel::getCenter
 
 
 void QtVtkIntrinsicTransformationPanel::setPhiAngle (double angle)
@@ -508,23 +520,63 @@ double QtVtkIntrinsicTransformationPanel::getOmegaAngle ( ) const
 }	// QtVtkIntrinsicTransformationPanel::getOmegaAngle
 
 
+void QtVtkIntrinsicTransformationPanel::setTranslationFirst (bool translationFirst)
+{
+	assert ((0 != _translationFirstCheckBox) && "QtVtkIntrinsicTransformationPanel::setTranslationFirst : null coordinate system checkbox.");
+	_translationFirstCheckBox->setChecked (translationFirst);
+	transformationModifiedCallback ( ) ;
+}	// QtVtkIntrinsicTransformationPanel::setTranslationFirst
+
+
+bool QtVtkIntrinsicTransformationPanel::isTranslationFirst ( ) const
+{
+	assert ((0 != _translationFirstCheckBox) && "QtVtkIntrinsicTransformationPanel::isTranslationFirst : null coordinate system checkbox.");
+
+	return _translationFirstCheckBox->isChecked ( );
+}	// QtVtkIntrinsicTransformationPanel::isTranslationFirst
+
+
+void QtVtkIntrinsicTransformationPanel::setTranslation (double x, double y, double z)
+{
+	assert ((0 != _translationPanel) && "QtVtkIntrinsicTransformationPanel::setTranslation : null translation panel.");
+	_translationPanel->setX (x);
+	_translationPanel->setY (y);
+	_translationPanel->setZ (z);
+}	// QtVtkIntrinsicTransformationPanel::setTranslation
+
+
+void QtVtkIntrinsicTransformationPanel::getTranslation (double& x, double& y, double& z) const
+{
+	assert ((0 != _translationPanel) && "QtVtkIntrinsicTransformationPanel::getTranslation : null translation panel.");
+	x	= _translationPanel->getX ( );
+	y	= _translationPanel->getY ( );
+	z	= _translationPanel->getZ ( );
+}	// QtVtkIntrinsicTransformationPanel::getTranslation
+
+
 vtkTransform* QtVtkIntrinsicTransformationPanel::getTransformation ( ) const
 {
-	vtkTransform*	transformation	= vtkTransform::New ( );	// PreMultiply
-	assert (0 != transformation);
-	
-	double	x	= 0., y	= 0., z	= 0.;
-	getCenter (x, y, z);
-	transformation->Translate (x, y, z);	// Modification extrinsèque pour centrage des rotations intrinsèques
-	transformation->PostMultiply ( );
+	vtkTransform*	transform	= vtkTransform::New ( );	// PreMultiply
+	assert (0 != transform);
+
+	const bool	translationFirst	= isTranslationFirst ( );
+	double	dx	= 0., dy	= 0., dz	= 0.;
+	getTranslation (dx, dy, dz);
+
+	if (true == translationFirst)
+		transform->Translate (dx, dy, dz);
 	// RotateY(phi) → RotateZ(theta) → RotateX(omega) : chaque rotation s’applique dans le repère local courant, 
 	// méthode standard pour les angles de Tait-Bryan intrinsèques (ZYX) en robotique/aéronautique. Dixit mistral.ai.
-	// Pour ce il faut inverser l'ordre des rotations par rapport à la même transformation mais à repère constant.
-	transformation->RotateX (getOmegaAngle ( ));
-	transformation->RotateZ (getThetaAngle ( ));
-	transformation->RotateY (getPhiAngle ( ));
+	// Pour ce il faut inverser l'ordre des rotations par rapport à la même transformation mais à repère constant
+	// (transformation extrinsèque).
+	transform->RotateX (getOmegaAngle ( ));
+	transform->RotateZ (getThetaAngle ( ));
+	transform->RotateY (getPhiAngle ( ));
+	if (false == translationFirst)
+		transform->Translate (dx, dy, dz);
+	transform->PostMultiply ( );
 
-	return transformation;
+	return transform;
 }	// QtVtkIntrinsicTransformationPanel::getTransformation
 
 
@@ -533,10 +585,26 @@ UTF8String QtVtkIntrinsicTransformationPanel::getTransformationDescription ( ) c
 	UTF8String	description (charset);
 
 	double	x	= 0., y	= 0., z	= 0.;
-	getCenter (x, y, z);
+	getTranslation (x, y, z);
 	description << "Transformation intrinsèque. Phi = " << getPhiAngle ( ) << " degrés, thêta = " << getThetaAngle ( ) << " degrés, oméga = " 
 		        << getOmegaAngle ( ) << " degrés, centrée en (" << x << ", " << y << ", " << z << ")";
-	
+
+
+	const bool	translationFirst	= isTranslationFirst ( );
+	double		dx	= 0., dy	= 0., dz	= 0.;
+	getTranslation (dx, dy, dz);
+	if (true == translationFirst)
+	{
+		description << "Transformation intrinsèque. Translation de (" << dx << ", " << dy << ", " << dz 
+		            << ") suivie de rotations phi (autour de Oy) = " << getPhiAngle ( ) << " degrés, thêta (autour de Oz) = " << getThetaAngle ( ) 
+		            << " degrés, omega (autour de Ox) = " << getOmegaAngle ( ) << " degrés.";
+	}	// if (true == translationFirst)
+	else
+	{
+		description << "Transformation intrinsèque. Rotations phi (autour de Oy) = " << getPhiAngle ( ) << " degrés, thêta (autour de Oz) = " << getThetaAngle ( ) 
+		            << " degrés, omega (autour de Ox) = " << getOmegaAngle ( ) << " degrés, suivie d'une translation de (" << dx << ", " << dy << ", " << dz << ") dans le repère local.";
+	}	// else if (true == translationFirst)
+
 	return description;
 }	// QtVtkIntrinsicTransformationPanel::getTransformationDescription
 
@@ -718,52 +786,14 @@ void QtVtkIntrinsicTransformationPanel::displayTrihedronsCallback ( )
 
 
 // ===========================================================================
-//              QtVtkTransformationPanel::TransformationMemento
-// ===========================================================================
-
-QtVtkTransformationPanel::TransformationMemento::TransformationMemento ( )
-	: isExtrinsic (true), xoy (0.), xoz (0.), yoz (0.), dx (0.), dy (0.), dz (0.), translationFirst (true), x (0.), y (0.), z (0.), phi (0.), theta (0.), omega (0.), displayTrihedron (true)
-{
-}	// TransformationMemento::TransformationMemento
-
-
-QtVtkTransformationPanel::TransformationMemento::TransformationMemento (const QtVtkTransformationPanel::TransformationMemento& m)
-	: isExtrinsic (m.isExtrinsic), xoy (m.xoy), xoz (m.xoz), yoz (m.yoz), dx (m.dx), dy (m.dy), dz (m.dz), translationFirst (m.translationFirst),
-	  x (m.x), y (m.y), z (m.z), phi (m.phi), theta (m.theta), omega (m.omega), displayTrihedron (m.displayTrihedron)
-{
-}	// TransformationMemento::TransformationMemento
-
-
-QtVtkTransformationPanel::TransformationMemento& QtVtkTransformationPanel::TransformationMemento::operator = (const QtVtkTransformationPanel::TransformationMemento& m)
-{
-	isExtrinsic			= m.isExtrinsic;
-	xoy					= m.xoy;
-	xoz					= m.xoz;
-	yoz					= m.yoz;
-	dx					= m.dx;
-	dy					= m.dy;
-	dz					= m.dz;
-	translationFirst	= m.translationFirst;
-	x					= m.x;
-	y					= m.y;
-	z					= m.z;
-	phi					= m.phi;
-	theta				= m.theta;
-	omega				= m.omega;
-	displayTrihedron	= m.displayTrihedron;
-
-	return *this;
-}	// TransformationMemento::operator =
-
-
-// ===========================================================================
 //                         QtVtkTransformationPanel
 // ===========================================================================
 
 double	QtVtkTransformationPanel::shaftRadius	= 0.01, QtVtkTransformationPanel::tipRadius	= 0.03, QtVtkTransformationPanel::tipLength	= 0.1;
+int		QtVtkTransformationPanel::margin		= QtConfiguration::margin, 							QtVtkTransformationPanel::spacing	= QtConfiguration::spacing;
 
 QtVtkTransformationPanel::QtVtkTransformationPanel (
-	QWidget* parent, const UTF8String& appTitle, vtkRenderer* renderer, vtkFloatingPointType bounds [6], const QtVtkTransformationPanel::TransformationMemento& memento)
+	QWidget* parent, const UTF8String& appTitle, vtkRenderer* renderer, vtkFloatingPointType bounds [6], const vtkTransformHelper::vtkSimpleTransformMemento& memento)
 	: QWidget (parent), _appTitle (appTitle), _extrinsicCheckBox (0), _contextualHelpLabel (0), _imageLabel (0),_extrinsicPanel (0), _intrinsicPanel (0)
 {
 	QtAutoWaitingCursor		waitingCursor (true);
@@ -772,11 +802,11 @@ QtVtkTransformationPanel::QtVtkTransformationPanel (
 	QHBoxLayout*	mainLayout	= new QHBoxLayout (this);
 	QVBoxLayout*	layout		= new QVBoxLayout ( );
 	mainLayout->addLayout (layout);
-	layout->setSpacing (QtConfiguration::spacing);
+	layout->setSpacing (QtVtkTransformationPanel::spacing);
 #ifdef QT_5
-	layout->setMargin (QtConfiguration::margin);
+	layout->setMargin (QtVtkTransformationPanel::margin);
 #else	// QT_5
-	layout->setContentsMargins (QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin, QtConfiguration::margin);
+	layout->setContentsMargins (QtVtkTransformationPanel::margin, QtVtkTransformationPanel::margin, QtVtkTransformationPanel::margin, QtVtkTransformationPanel::margin);
 #endif	// QT_5
 	layout->setSizeConstraint (QLayout::SetMinimumSize);
 
@@ -795,7 +825,7 @@ QtVtkTransformationPanel::QtVtkTransformationPanel (
 	_extrinsicPanel	= new QtVtkExtrinsicTransformationPanel (this, _appTitle);
 	connect (_extrinsicPanel, SIGNAL (transformationChanged ( )), this, SLOT (transformationModifiedCallback ( )));
 	layout->addWidget (_extrinsicPanel);
-	_intrinsicPanel	= new QtVtkIntrinsicTransformationPanel (this, _appTitle, renderer, bounds, memento.displayTrihedron);
+	_intrinsicPanel	= new QtVtkIntrinsicTransformationPanel (this, _appTitle, renderer, bounds, (bool)memento.userData);
 	connect (_intrinsicPanel, SIGNAL (transformationChanged ( )), this, SLOT (transformationModifiedCallback ( )));
 	layout->addWidget (_intrinsicPanel);
 
@@ -813,12 +843,13 @@ QtVtkTransformationPanel::QtVtkTransformationPanel (
 		_extrinsicPanel->setTranslationFirst (memento.translationFirst);
 		_extrinsicPanel->setTranslation (memento.dx, memento.dy, memento.dz);
 	}	// if (true == memento.isExtrinsic)
-	else
+	else 
 	{
-		_intrinsicPanel->setCenter (memento.x, memento.y, memento.z);
-		_intrinsicPanel->setPhiAngle (memento.phi);
-		_intrinsicPanel->setThetaAngle (memento.theta);
-		_intrinsicPanel->setOmegaAngle (memento.omega);
+		_intrinsicPanel->setTranslationFirst (memento.translationFirst);
+		_intrinsicPanel->setTranslation (memento.dx, memento.dy, memento.dz);
+		_intrinsicPanel->setPhiAngle (memento.xoz);
+		_intrinsicPanel->setThetaAngle (memento.xoy);
+		_intrinsicPanel->setOmegaAngle (memento.yoz);
 	}	// else if (true == memento.isExtrinsic)
 
 	transformationTypeModifiedCallback ( );
@@ -826,23 +857,30 @@ QtVtkTransformationPanel::QtVtkTransformationPanel (
 }	// QtVtkTransformationPanel::QtVtkTransformationPanel
 
 
-QtVtkTransformationPanel::TransformationMemento QtVtkTransformationPanel::getMemento ( ) const
+vtkTransformHelper::vtkSimpleTransformMemento QtVtkTransformationPanel::getMemento ( ) const
 {
 	assert (0 != _extrinsicPanel);
 	assert (0 != _intrinsicPanel);
 
-	QtVtkTransformationPanel::TransformationMemento	memento;
+	vtkTransformHelper::vtkSimpleTransformMemento	memento;
 	memento.isExtrinsic	= isExtrinsic ( );
-	
-	memento.xoy					= _extrinsicPanel->getXOYAngle ( );
-	memento.xoz					= _extrinsicPanel->getXOZAngle ( );
-	memento.yoz					= _extrinsicPanel->getYOZAngle ();
-	memento.translationFirst	= _extrinsicPanel->isTranslationFirst ( );
-	_extrinsicPanel->getTranslation (memento.dx, memento.dy, memento.dz);
-	_intrinsicPanel->getCenter (memento.x, memento.y, memento.z);
-	memento.phi					= _intrinsicPanel->getPhiAngle ( );
-	memento.theta				= _intrinsicPanel->getThetaAngle ( );
-	memento.omega				= _intrinsicPanel->getOmegaAngle ( );
+
+	if (true == memento.isExtrinsic)
+	{
+		memento.xoy					= _extrinsicPanel->getXOYAngle ( );
+		memento.xoz					= _extrinsicPanel->getXOZAngle ( );
+		memento.yoz					= _extrinsicPanel->getYOZAngle ();
+		memento.translationFirst	= _extrinsicPanel->isTranslationFirst ( );
+		_extrinsicPanel->getTranslation (memento.dx, memento.dy, memento.dz);
+	}	// if (true == memento.isExtrinsic)
+	else
+	{
+		memento.xoz					= _intrinsicPanel->getPhiAngle ( );
+		memento.xoy					= _intrinsicPanel->getThetaAngle ( );
+		memento.yoz					= _intrinsicPanel->getOmegaAngle ( );
+		memento.translationFirst	= _intrinsicPanel->isTranslationFirst ( );
+		_intrinsicPanel->getTranslation (memento.dx, memento.dy, memento.dz);
+	}	// else if (true == memento.isExtrinsic)
 
 	return memento;
 }	// QtVtkTransformationPanel::getMemento
