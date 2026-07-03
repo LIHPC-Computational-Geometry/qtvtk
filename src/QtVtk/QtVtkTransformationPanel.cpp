@@ -74,7 +74,7 @@ QtVtkExtrinsicTransformationPanel::QtVtkExtrinsicTransformationPanel (QWidget* p
 	QLabel*	angleLabel	= new QLabel (QSTR ("Angle de rotation autour de Oz :"), xOyGroupBox);
 	qhLayout->addWidget (angleLabel);
 	_xOyAngleTextField	= new QtTextField (QString::number (xoy), xOyGroupBox);
-	_xOyAngleTextField->setValidator (new QDoubleValidator (-180., 180., 0, _xOyAngleTextField));
+	_xOyAngleTextField->setValidator (new QDoubleValidator (-180., 180., 4, _xOyAngleTextField));
 	qhLayout->addWidget (_xOyAngleTextField);
 	connect (_xOyAngleTextField, SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
 	_xOyAngleTextField->setFixedSize (_xOyAngleTextField->sizeHint ( ));
@@ -93,7 +93,7 @@ QtVtkExtrinsicTransformationPanel::QtVtkExtrinsicTransformationPanel (QWidget* p
 	angleLabel	= new QLabel (QSTR ("Angle de rotation autour de Ox :"), yOzGroupBox);
 	qhLayout->addWidget (angleLabel);
 	_yOzAngleTextField	= 	new QtTextField (QString::number (yoz), yOzGroupBox);
-	_yOzAngleTextField->setValidator (new QDoubleValidator (-180., 180., 0, _yOzAngleTextField));
+	_yOzAngleTextField->setValidator (new QDoubleValidator (-180., 180., 4, _yOzAngleTextField));
 	qhLayout->addWidget (_yOzAngleTextField);
 	connect (_yOzAngleTextField, SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
 	_yOzAngleTextField->setFixedSize (_yOzAngleTextField->sizeHint ( ));
@@ -112,7 +112,7 @@ QtVtkExtrinsicTransformationPanel::QtVtkExtrinsicTransformationPanel (QWidget* p
 	angleLabel	= new QLabel (QSTR ("Angle de rotation autour de Oy :"), xOzGroupBox);
 	qhLayout->addWidget (angleLabel);
 	_xOzAngleTextField	= 	new QtTextField (QString::number (xoz), xOzGroupBox);
-	_xOzAngleTextField->setValidator (new QDoubleValidator (-180., 180., 0, _xOzAngleTextField));
+	_xOzAngleTextField->setValidator (new QDoubleValidator (-180., 180., 4, _xOzAngleTextField));
 	qhLayout->addWidget (_xOzAngleTextField);
 	connect (_xOzAngleTextField, SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
 	_xOzAngleTextField->setFixedSize (_xOzAngleTextField->sizeHint ( ));
@@ -264,18 +264,26 @@ void QtVtkExtrinsicTransformationPanel::getTranslation (double& dx, double& dy, 
 
 vtkTransform* QtVtkExtrinsicTransformationPanel::getTransformation ( ) const
 {
-	vtkTransform*	transformation	= vtkTransform::New ( );	// PreMultiply
+	vtkTransform*	transformation	= vtkTransform::New ( );
 	assert (0 != transformation);
-	
+
+	// Passage en mode PostMultiply pour le repère extrinsèque (global)
+	transformation->PostMultiply ( );
+
 	const bool	translationFirst	= isTranslationFirst ( );
 	double	dx	= 0., dy	= 0., dz	= 0.;
 	getTranslation (dx, dy, dz);
-	if (false == translationFirst)
-		transformation->Translate (dx, dy, dz);
-	transformation->RotateY (getXOZAngle ( ));
-	transformation->RotateX (getYOZAngle ( ));
-	transformation->RotateZ (getXOYAngle ( ));
+
+	// Application des transformations dans l'ordre exact de l'énoncé
 	if (true == translationFirst)
+		transformation->Translate (dx, dy, dz);
+		
+	// Rotations autour de Oz, puis Oz, puis Oy :
+	transformation->RotateZ (getXOYAngle ( ));
+	transformation->RotateX (getYOZAngle ( ));
+	transformation->RotateY (getXOZAngle ( ));
+
+	if (false == translationFirst)
 		transformation->Translate (dx, dy, dz);
 
 	return transformation;
@@ -367,7 +375,7 @@ QtVtkIntrinsicTransformationPanel::QtVtkIntrinsicTransformationPanel (
 	QLabel*	angleLabel	= new QLabel (QSTR ("Angle ") + QtStringHelper::phiMin ( ), phiGroupBox);
 	qhLayout->addWidget (angleLabel);
 	_phiAngleTextField	= new QtTextField (QString::number (phi), phiGroupBox);
-	_phiAngleTextField->setValidator (new QDoubleValidator (-180., 180., 0, _phiAngleTextField));
+	_phiAngleTextField->setValidator (new QDoubleValidator (-180., 180., 4, _phiAngleTextField));
 	qhLayout->addWidget (_phiAngleTextField);
 	connect (_phiAngleTextField, SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
 	_phiAngleTextField->setFixedSize (_phiAngleTextField->sizeHint ( ));
@@ -387,7 +395,7 @@ QtVtkIntrinsicTransformationPanel::QtVtkIntrinsicTransformationPanel (
 	angleLabel	= new QLabel (QSTR ("Angle ") + QtStringHelper::thetaMaj ( ), thetaGroupBox);
 	qhLayout->addWidget (angleLabel);
 	_thetaAngleTextField	= new QtTextField (QString::number (theta), thetaGroupBox);
-	_thetaAngleTextField->setValidator (new QDoubleValidator (-180., 180., 0, _thetaAngleTextField));
+	_thetaAngleTextField->setValidator (new QDoubleValidator (-180., 180., 4, _thetaAngleTextField));
 	qhLayout->addWidget (_thetaAngleTextField);
 	connect (_thetaAngleTextField, SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
 	_thetaAngleTextField->setFixedSize (_thetaAngleTextField->sizeHint ( ));
@@ -407,7 +415,7 @@ QtVtkIntrinsicTransformationPanel::QtVtkIntrinsicTransformationPanel (
 	angleLabel	= new QLabel (QSTR ("Angle ") + QtStringHelper::omegaMaj ( ), omegaGroupBox);
 	qhLayout->addWidget (angleLabel);
 	_omegaAngleTextField	= new QtTextField (QString::number (omega), omegaGroupBox);
-	_omegaAngleTextField->setValidator (new QDoubleValidator (-180., 180., 0, _omegaAngleTextField));
+	_omegaAngleTextField->setValidator (new QDoubleValidator (-180., 180., 4, _omegaAngleTextField));
 	qhLayout->addWidget (_omegaAngleTextField);
 	connect (_omegaAngleTextField, SIGNAL (returnPressed ( )), this, SLOT (transformationModifiedCallback ( )));
 	_omegaAngleTextField->setFixedSize (_omegaAngleTextField->sizeHint ( ));
@@ -559,22 +567,20 @@ vtkTransform* QtVtkIntrinsicTransformationPanel::getTransformation ( ) const
 	vtkTransform*	transform	= vtkTransform::New ( );	// PreMultiply
 	assert (0 != transform);
 
+	// Passage en mode PreMultiply pour le repère intrinsèque (local)
+	transform->PreMultiply ( );
+
 	const bool	translationFirst	= isTranslationFirst ( );
 	double	dx	= 0., dy	= 0., dz	= 0.;
 	getTranslation (dx, dy, dz);
 
 	if (true == translationFirst)
 		transform->Translate (dx, dy, dz);
-	// RotateY(phi) → RotateZ(theta) → RotateX(omega) : chaque rotation s’applique dans le repère local courant, 
-	// méthode standard pour les angles de Tait-Bryan intrinsèques (ZYX) en robotique/aéronautique. Dixit mistral.ai.
-	// Pour ce il faut inverser l'ordre des rotations par rapport à la même transformation mais à repère constant
-	// (transformation extrinsèque).
-	transform->RotateX (getOmegaAngle ( ));
-	transform->RotateZ (getThetaAngle ( ));
 	transform->RotateY (getPhiAngle ( ));
+	transform->RotateZ (getThetaAngle ( ));
+	transform->RotateX (getOmegaAngle ( ));
 	if (false == translationFirst)
 		transform->Translate (dx, dy, dz);
-	transform->PostMultiply ( );
 
 	return transform;
 }	// QtVtkIntrinsicTransformationPanel::getTransformation
@@ -747,14 +753,7 @@ void QtVtkIntrinsicTransformationPanel::displayTrihedronsCallback ( )
 	if (0 != _renderer)
 	{
 		if (true == displayTrihedron ( ))
-		{
-/* CP : En attente, pour fonctionnement avec un slider type QtExpRoomToMeshTransformationPanel::applyTransformations
- 			static const double	trihedronBounds [6]	= { 0., 1., 0., 1., 0., 1. };			
-			const double	zoomMin	= 0.8, zoomMax	= 1.5;
-			const int		min	= 0, max	= 100, val	= (max - min) / 2;		// slider
-			const double	scale	= QtVTKPointLocalizatorPanel::zoomValue (val, (double*)trihedronBounds, _bounds, min, max, zoomMin, zoomMax);
-*/
-			
+		{	
 			if (0 == _globalTrihedron)
 				_globalTrihedron	= createTrihedron (true, _bounds);
 			if (0 == _localTrihedron)
@@ -987,5 +986,4 @@ void QtVtkTransformationPanel::transformationModifiedCallback ( )
 {
 	emit (transformationChanged ( ));
 }	// QtVtkTransformationPanel::transformationModifiedCallback
-
 
