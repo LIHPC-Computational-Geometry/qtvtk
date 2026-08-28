@@ -1,5 +1,12 @@
 A FAIRE : tester le vtkIntersectionPolyDataFilter de VTK 7, voir si de base il propose les services attendus (Inner, ...).
 
+Version 8.12.0 : 28/08/26
+================
+
+Utilisation de la fonction separate_debug_infos de séparations des informations de débogage du binaire
+de GUIToolkitsVariables.
+
+
 Version 8.11.1 : 03/07/26
 ================
 

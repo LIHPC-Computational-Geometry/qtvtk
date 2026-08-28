@@ -1,12 +1,13 @@
 set (CURRENT_PACKAGE_NAME "QtVtk")
 set (CURRENT_PACKAGE_MACRO_NAME "QT_VTK")
 
-find_package (GUIToolkitsVariables)
+find_package (GUIToolkitsVariables 1.7 REQUIRED)
 
 include (${CMAKE_SOURCE_DIR}/cmake/version.cmake)
 include (${GUIToolkitsVariables_CMAKE_DIR}/common.cmake)
 include (${GUIToolkitsVariables_CMAKE_DIR}/common_qt.cmake)
 include (${GUIToolkitsVariables_CMAKE_DIR}/workarounds.cmake)
+include (${GUIToolkitsVariables_CMAKE_DIR}/utilities.cmake)
 
 find_package (VtkContrib 5 REQUIRED)
 include (${CMAKE_SOURCE_DIR}/cmake/qtvtk_common.cmake)	# Après VtkContrib qui positionne les variables VTK_7, VTK_8 et VTK_9
@@ -57,6 +58,7 @@ target_link_libraries (QtVtk PUBLIC PrefsQt::PrefsQt VtkContrib::VtkContrib)
 # Etre capable une fois installée de retrouver vtk*, ... :
 # (Rem : en son absence on a Set runtime path of "/tmp/pignerol/install/lib/libQtVtk.so.5.0.0" to "") ...
 set_target_properties (QtVtk PROPERTIES INSTALL_RPATH_USE_LINK_PATH 1)
+separate_debug_infos (QtVtk ${CMAKE_INSTALL_PREFIX}/src)
 
 # INSTALLATION :
 include(CMakePackageConfigHelpers)
