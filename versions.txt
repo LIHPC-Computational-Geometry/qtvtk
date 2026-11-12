@@ -1,5 +1,12 @@
 A FAIRE : tester le vtkIntersectionPolyDataFilter de VTK 7, voir si de base il propose les services attendus (Inner, ...).
 
+Version 8.12.1 : 05/11/26
+================
+
+Fichiers cmake : remplacement de NO_CMAKE_SYSTEM_PATH par NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_SYSTEM_PACKAGE_REGISTRY 
+pour Qt (id. GUIToolkitsVariables/cmake/common_qt.cmake).
+
+
 Version 8.12.0 : 28/08/26
 ================
 
